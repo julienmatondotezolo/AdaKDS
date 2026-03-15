@@ -6,12 +6,11 @@
   "scripts": {
     "dev": "next dev -p 5006",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 8082",
     "lint": "next lint",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.99.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
