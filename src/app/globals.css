@@ -1,0 +1,217 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ada-50: 240 244 255;
+    --ada-100: 221 230 255;
+    --ada-200: 194 212 255;
+    --ada-300: 156 184 255;
+    --ada-400: 117 148 255;
+    --ada-500: 77 106 255;
+    --ada-600: 59 78 204;
+    --ada-700: 50 65 153;
+    --ada-800: 42 52 102;
+    --ada-900: 31 38 51;
+  }
+  
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* KDS Specific Styles */
+  .kds-container {
+    @apply min-h-screen bg-gray-900 text-white overflow-hidden;
+  }
+  
+  .order-card {
+    @apply bg-white rounded-lg shadow-lg border-l-4 transition-all duration-300 hover:shadow-xl;
+  }
+  
+  .order-card.new {
+    @apply border-l-status-new;
+  }
+  
+  .order-card.preparing {
+    @apply border-l-status-preparing;
+  }
+  
+  .order-card.ready {
+    @apply border-l-status-ready animate-pulse;
+  }
+  
+  .order-card.overdue {
+    @apply border-l-red-600 shadow-lg shadow-red-500/20 animate-flash;
+  }
+  
+  .station-header {
+    @apply sticky top-0 z-10 backdrop-blur-sm bg-white/90 border-b border-gray-200 px-4 py-3 font-semibold text-gray-800;
+  }
+  
+  .priority-urgent {
+    @apply ring-2 ring-priority-urgent ring-offset-2 ring-offset-white;
+  }
+  
+  .priority-high {
+    @apply ring-1 ring-priority-high ring-offset-1 ring-offset-white;
+  }
+  
+  /* Scrollbar Styles */
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full hover:bg-gray-400;
+  }
+  
+  /* Dark mode scrollbar */
+  .dark .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-800;
+  }
+  
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-600 hover:bg-gray-500;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-ada-500 hover:bg-ada-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50;
+  }
+  
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+  }
+  
+  .btn-success {
+    @apply bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+  }
+  
+  .status-badge {
+    @apply px-2 py-1 rounded-full text-xs font-medium uppercase tracking-wide;
+  }
+  
+  .timer-display {
+    @apply font-mono text-lg font-bold tabular-nums;
+  }
+  
+  .station-column {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 min-h-screen max-h-screen overflow-hidden flex flex-col;
+  }
+  
+  .order-grid {
+    @apply grid gap-4 p-4 overflow-y-auto custom-scrollbar;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .animate-flash {
+    animation: flash 1s ease-in-out infinite;
+  }
+  
+  .animate-pulse-soft {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .animate-bounce-subtle {
+    animation: bounceSubtle 1s ease-in-out infinite;
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Font loading optimization */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-var.woff2') format('woff2');
+}
+
+/* Print styles for kitchen receipts */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    @apply text-black bg-white;
+  }
+  
+  .order-card {
+    @apply border border-gray-400 break-inside-avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .station-column {
+    @apply min-h-[50vh];
+  }
+  
+  .order-card {
+    @apply text-sm;
+  }
+  
+  .timer-display {
+    @apply text-base;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .animate-flash,
+  .animate-bounce-subtle {
+    animation: none;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+.focus-visible {
+  @apply outline-none ring-2 ring-ada-500 ring-offset-2 ring-offset-white;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .order-card {
+    @apply border-2 border-gray-900;
+  }
+  
+  .status-badge {
+    @apply border border-current;
+  }
+}
