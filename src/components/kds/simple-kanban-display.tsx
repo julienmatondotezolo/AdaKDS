@@ -7,6 +7,7 @@ import { useKDSStore } from '@/store/kds-store';
 import { useSocket } from '@/hooks/use-socket';
 import { ordersApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { CheckCircle, UtensilsCrossed, ChefHat, Clock } from 'lucide-react';
 import type { Order } from '@/types';
 
 export const SimpleKanbanDisplay: React.FC = () => {
@@ -202,7 +203,7 @@ export const SimpleKanbanDisplay: React.FC = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md">
             <div className="w-32 h-32 bg-green-100 border border-green-200 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-green-600 text-6xl">🍝</span>
+              <CheckCircle className="text-green-600 w-16 h-16" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">All Caught Up!</h2>
             <p className="text-gray-600 mb-6 text-lg leading-relaxed">
@@ -233,7 +234,7 @@ export const SimpleKanbanDisplay: React.FC = () => {
             <div className="flex-1 overflow-y-auto space-y-4">
               {ordersByStatus.new.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <div className="text-4xl mb-2">🍽️</div>
+                  <UtensilsCrossed className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                   <p className="text-lg font-semibold">No new orders</p>
                   <p className="text-sm">New orders will appear here</p>
                 </div>
@@ -259,7 +260,7 @@ export const SimpleKanbanDisplay: React.FC = () => {
             <div className="flex-1 overflow-y-auto space-y-4">
               {ordersByStatus.process.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <div className="text-4xl mb-2">👨‍🍳</div>
+                  <ChefHat className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                   <p className="text-lg font-semibold">No orders in progress</p>
                   <p className="text-sm">Orders being prepared will appear here</p>
                 </div>
@@ -285,7 +286,7 @@ export const SimpleKanbanDisplay: React.FC = () => {
             <div className="flex-1 overflow-y-auto space-y-4">
               {ordersByStatus.ready.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <div className="text-4xl mb-2">✅</div>
+                  <Clock className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                   <p className="text-lg font-semibold">No orders ready</p>
                   <p className="text-sm">Orders will appear here when ready for completion</p>
                 </div>

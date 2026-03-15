@@ -43,9 +43,6 @@ export const SimpleKanbanHeader: React.FC<SimpleKanbanHeaderProps> = ({
               alt="AdaKDS Logo" 
               className="w-12 h-12 rounded-lg shadow-sm"
             />
-            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center ml-2">
-              <ChefHat className="text-white w-7 h-7" />
-            </div>
             <div>
               <h1 className="text-gray-900 text-xl font-bold">AdaKDS</h1>
               <p className="text-gray-600 text-sm">Kitchen Display System</p>

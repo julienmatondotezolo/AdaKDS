@@ -93,7 +93,7 @@ export const ModernOrderCard: React.FC<ModernOrderCardProps> = ({
           bg: 'bg-orange-500/20',
           text: 'text-orange-400',
           border: 'border-orange-500/50',
-          icon: '⚡'
+          icon: 'Zap'
         };
       case 'normal':
         return null;

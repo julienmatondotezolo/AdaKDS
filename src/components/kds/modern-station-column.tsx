@@ -97,7 +97,7 @@ export const ModernStationColumn: React.FC<ModernStationColumnProps> = ({
           bg: 'bg-gray-500/20',
           border: 'border-gray-500/50',
           text: 'text-gray-400',
-          icon: '🍽️'
+          icon: 'UtensilsCrossed'
         };
     }
   };

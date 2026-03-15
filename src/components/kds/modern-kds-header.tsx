@@ -80,19 +80,19 @@ export const ModernKDSHeader: React.FC<ModernKDSHeaderProps> = ({
       level: 'HIGH RUSH', 
       color: 'text-orange-400', 
       bg: 'bg-orange-500/20 border-orange-500/50',
-      icon: '⚡'
+      icon: 'Zap'
     };
     if (totalActiveOrders >= 5) return { 
       level: 'MODERATE', 
       color: 'text-amber-400', 
       bg: 'bg-amber-500/20 border-amber-500/50',
-      icon: '⚠️'
+      icon: 'AlertTriangle'
     };
     return { 
       level: 'NORMAL', 
       color: 'text-emerald-400', 
       bg: 'bg-emerald-500/20 border-emerald-500/50',
-      icon: '✅'
+      icon: 'CheckCircle'
     };
   };
 

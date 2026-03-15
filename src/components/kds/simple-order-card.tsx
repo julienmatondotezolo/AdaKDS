@@ -99,7 +99,7 @@ export const SimpleOrderCard: React.FC<SimpleOrderCardProps> = ({
         style={{ backgroundColor: colorScheme[type].headerBg }}
       >
         <div className="flex items-center space-x-3">
-          <span className="text-sm font-bold">🍽️</span>
+          <UtensilsCrossed className="w-5 h-5 text-white" />
           <div className="flex flex-col">
             <span className="font-bold text-lg">{getTableNumber()}</span>
             <span className="text-sm opacity-90">Order #{order.order_number}</span>
