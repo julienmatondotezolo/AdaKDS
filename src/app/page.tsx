@@ -1,7 +1,7 @@
 'use client';
 
-import { ModernKDSDisplay } from '@/components/kds/modern-kds-display';
+import { SimpleKanbanDisplay } from '@/components/kds/simple-kanban-display';
 
 export default function HomePage() {
-  return <ModernKDSDisplay />;
+  return <SimpleKanbanDisplay />;
 }
