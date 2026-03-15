@@ -7,9 +7,8 @@ const nextConfig = {
   images: {
     domains: ['api-kds.adasystems.app', 'dxxtxdyrovawugvvrhah.supabase.co'],
   },
-  experimental: {
-    optimizeCss: true,
-  },
+  swcMinify: true,
+  reactStrictMode: true,
 }
 
 module.exports = nextConfig
