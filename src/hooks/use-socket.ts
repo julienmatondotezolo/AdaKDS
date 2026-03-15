@@ -5,12 +5,12 @@ import { io, Socket } from 'socket.io-client';
 import { useKDSStore } from '@/store/kds-store';
 import type { SocketEvents } from '@/types';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://api-kds.adasystems.app';
-const RESTAURANT_ID = process.env.NEXT_PUBLIC_RESTAURANT_ID || 'demo-restaurant';
+const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'https://api-kds.adasystems.app';
+const RESTAURANT_ID = process.env.NEXT_PUBLIC_RESTAURANT_ID || 'losteria';
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
-  const { setConnected, updateOrder, setConfig } = useKDSStore();
+  const { setConnected, updateOrder, setConfig, addOrder } = useKDSStore();
 
   useEffect(() => {
     // Initialize socket connection
@@ -42,6 +42,17 @@ export const useSocket = () => {
     });
 
     // Order event handlers
+    socket.on('ada_menu_order_received', (data: any) => {
+      console.log('[NEW ORDER] AdaMenu order received:', data.order.order_number);
+      console.log('Order details:', data.order);
+      
+      // Add the new order to the store immediately
+      addOrder(data.order);
+      
+      // Play new order notification sound
+      playNotificationSound('new');
+    });
+
     socket.on('order_status_updated', (data: SocketEvents['order_status_updated']) => {
       console.log(`[ORDER] ${data.order_id}: ${data.old_status} -> ${data.new_status}`);
       updateOrder(data.order_id, { 
@@ -96,7 +107,7 @@ export const useSocket = () => {
       socket.disconnect();
       setConnected(false);
     };
-  }, [setConnected, updateOrder, setConfig]);
+  }, [setConnected, updateOrder, setConfig, addOrder]);
 
   return {
     socket: socketRef.current,
