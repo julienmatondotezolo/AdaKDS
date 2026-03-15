@@ -14,14 +14,19 @@
     --ada-700: 50 65 153;
     --ada-800: 42 52 102;
     --ada-900: 31 38 51;
+    
+    /* Border colors */
+    --border: 220 220 220;
+    --background: 255 255 255;
+    --foreground: 0 0 0;
   }
   
   * {
-    @apply border-border;
+    @apply border-gray-200;
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-black;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   

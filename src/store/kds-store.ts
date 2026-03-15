@@ -112,7 +112,28 @@ export const useFilteredOrders = () => {
 
 export const useOrdersByStation = () => {
   return useKDSStore((state) => {
-    const filteredOrders = useFilteredOrders()();
+    const { orders, selectedStations, config } = state;
+    
+    // Filter orders inline instead of using the other selector
+    let filteredOrders = orders;
+
+    // Filter by selected stations
+    if (selectedStations.length > 0) {
+      filteredOrders = filteredOrders.filter(order => 
+        selectedStations.includes(order.station)
+      );
+    }
+
+    // Apply display filters
+    if (config?.filters) {
+      if (config.filters.hide_completed) {
+        filteredOrders = filteredOrders.filter(order => order.status !== 'completed');
+      }
+      if (config.filters.hide_cancelled) {
+        filteredOrders = filteredOrders.filter(order => order.status !== 'cancelled');
+      }
+    }
+
     const { stations } = state;
     
     const ordersByStation: Record<string, Order[]> = {};
