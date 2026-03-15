@@ -179,7 +179,7 @@ export const SimpleKanbanDisplay: React.FC = () => {
   const totalActiveOrders = ordersByStatus.new.length + ordersByStatus.process.length + ordersByStatus.ready.length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-6">
       {/* Header with counts */}
       <SimpleKanbanHeader 
         newCount={ordersByStatus.new.length}
@@ -215,13 +215,13 @@ export const SimpleKanbanDisplay: React.FC = () => {
       {/* Main Kanban Board */}
       {totalActiveOrders > 0 && (
       <div className="flex-1 p-6">
-        <div className="grid grid-cols-3 gap-6 h-[calc(100vh-120px)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-[calc(100vh-120px)]">
           {/* New Orders Column */}
-          <div className="flex flex-col">
+          <div className="flex flex-col min-h-[500px]">
             <div className="text-white text-center py-4 rounded-lg mb-4 shadow-sm" style={{ backgroundColor: '#EF4444' }}>
               <h2 className="text-xl font-bold">New ({ordersByStatus.new.length})</h2>
             </div>
-            <div className="flex-1 overflow-y-auto space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-4 max-h-[calc(100vh-200px)] custom-scrollbar touch-scroll">
               {ordersByStatus.new.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <UtensilsCrossed className="w-12 h-12 mx-auto mb-3 text-gray-400" />
@@ -243,11 +243,11 @@ export const SimpleKanbanDisplay: React.FC = () => {
           </div>
 
           {/* Processing Orders Column */}
-          <div className="flex flex-col">
+          <div className="flex flex-col min-h-[500px]">
             <div className="text-white text-center py-4 rounded-lg mb-4 shadow-sm" style={{ backgroundColor: '#F59E0B' }}>
               <h2 className="text-xl font-bold">Process ({ordersByStatus.process.length})</h2>
             </div>
-            <div className="flex-1 overflow-y-auto space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-4 max-h-[calc(100vh-200px)] custom-scrollbar touch-scroll">
               {ordersByStatus.process.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <ChefHat className="w-12 h-12 mx-auto mb-3 text-gray-400" />
@@ -269,11 +269,11 @@ export const SimpleKanbanDisplay: React.FC = () => {
           </div>
 
           {/* Ready Orders Column */}
-          <div className="flex flex-col">
+          <div className="flex flex-col min-h-[500px]">
             <div className="text-white text-center py-4 rounded-lg mb-4 shadow-sm" style={{ backgroundColor: '#10B981' }}>
               <h2 className="text-xl font-bold">Ready ({ordersByStatus.ready.length})</h2>
             </div>
-            <div className="flex-1 overflow-y-auto space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-4 max-h-[calc(100vh-200px)] custom-scrollbar touch-scroll">
               {ordersByStatus.ready.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Clock className="w-12 h-12 mx-auto mb-3 text-gray-400" />

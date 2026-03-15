@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChefHat, Wifi, WifiOff } from 'lucide-react';
+import { ChefHat, Wifi, WifiOff, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 interface SimpleKanbanHeaderProps {
   newCount: number;
@@ -98,22 +99,35 @@ export const SimpleKanbanHeader: React.FC<SimpleKanbanHeaderProps> = ({
             </div>
           </div>
 
-          {/* Connection status with proper icon */}
-          <div className="flex items-center space-x-2">
-            {isConnected ? (
-              <Wifi className={cn(
-                "w-5 h-5 text-green-600",
-                isConnected && "animate-pulse"
-              )} />
-            ) : (
-              <WifiOff className="w-5 h-5 text-red-600" />
-            )}
-            <span className={cn(
-              "text-sm font-medium",
-              isConnected ? "text-green-700" : "text-red-700"
-            )}>
-              {isConnected ? 'LIVE' : 'OFFLINE'}
-            </span>
+          {/* Connection status and settings */}
+          <div className="flex items-center space-x-4">
+            {/* Connection status */}
+            <div className="flex items-center space-x-2">
+              {isConnected ? (
+                <Wifi className={cn(
+                  "w-5 h-5 text-green-600",
+                  isConnected && "animate-pulse"
+                )} />
+              ) : (
+                <WifiOff className="w-5 h-5 text-red-600" />
+              )}
+              <span className={cn(
+                "text-sm font-medium",
+                isConnected ? "text-green-700" : "text-red-700"
+              )}>
+                {isConnected ? 'LIVE' : 'OFFLINE'}
+              </span>
+            </div>
+
+            {/* Settings button */}
+            <Link 
+              href="/stations"
+              className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              title="Manage Kitchen Stations"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="text-sm font-medium">Settings</span>
+            </Link>
           </div>
         </div>
       </div>

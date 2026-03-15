@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  userScalable: false,
+  userScalable: true, // Allow pinch-to-zoom on tablets
   themeColor: '#4d6aff',
 };
 
@@ -44,10 +44,10 @@ export default function RootLayout({
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_WS_URL} />
       </head>
       <body 
-        className={`${inter.className} antialiased overflow-hidden`}
+        className={`${inter.className} antialiased`}
         suppressHydrationWarning
       >
-        <div id="kds-app" className="h-screen w-screen overflow-hidden">
+        <div id="kds-app" className="min-h-screen w-full">
           {children}
         </div>
         

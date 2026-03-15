@@ -41,7 +41,7 @@
   
   /* Modern KDS Container */
   .kds-container {
-    @apply min-h-screen overflow-hidden;
+    @apply min-h-screen;
     background: rgb(var(--kds-bg));
     color: rgb(var(--kds-text-primary));
   }
@@ -159,7 +159,7 @@
   
   /* Modern Station Columns */
   .station-column {
-    @apply rounded-xl shadow-lg border min-h-screen max-h-screen overflow-hidden flex flex-col;
+    @apply rounded-xl shadow-lg border min-h-[400px] flex flex-col;
     background: rgb(var(--kds-surface));
     border-color: rgb(var(--kds-border));
   }
@@ -215,6 +215,12 @@
   
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+  
+  /* Touch-friendly scrolling */
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
 }
 
@@ -293,6 +299,25 @@
   
   .timer-display {
     @apply text-base;
+  }
+  
+  /* Ensure columns can scroll independently on mobile */
+  .kanban-column {
+    @apply max-h-[70vh];
+  }
+  
+  /* Better touch targets for mobile */
+  .card-action-button {
+    @apply text-base;
+    min-height: 48px;
+    min-width: 100px;
+  }
+  
+  /* Improve scrolling performance on mobile */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overflow: auto;
   }
 }
 
