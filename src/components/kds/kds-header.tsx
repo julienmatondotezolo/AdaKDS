@@ -199,7 +199,7 @@ export const KDSHeader: React.FC<KDSHeaderProps> = ({
             <TrendingUp className="h-4 w-4" />
             <span>Performance tracking active</span>
           </div>
-          {config && (
+          {config && config.display_layout && (
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
               <span>{config.display_layout.columns} column layout</span>

@@ -15,6 +15,14 @@
     --ada-800: 42 52 102;
     --ada-900: 31 38 51;
     
+    /* Modern KDS Color Scheme */
+    --kds-bg: 26 26 26;          /* Deep charcoal background */
+    --kds-surface: 38 38 38;     /* Card surfaces */
+    --kds-border: 64 64 64;      /* Subtle borders */
+    --kds-text-primary: 255 255 255;    /* Primary text */
+    --kds-text-secondary: 163 163 163;  /* Secondary text */
+    --kds-text-muted: 115 115 115;      /* Muted text */
+    
     /* Border colors */
     --border: 220 220 220;
     --background: 255 255 255;
@@ -28,35 +36,48 @@
   body {
     @apply bg-white text-black;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   }
   
-  /* KDS Specific Styles */
+  /* Modern KDS Container */
   .kds-container {
-    @apply min-h-screen bg-gray-900 text-white overflow-hidden;
+    @apply min-h-screen overflow-hidden;
+    background: rgb(var(--kds-bg));
+    color: rgb(var(--kds-text-primary));
   }
   
+  /* Modern Order Cards */
   .order-card {
-    @apply bg-white rounded-lg shadow-lg border-l-4 transition-all duration-300 hover:shadow-xl;
+    @apply rounded-xl transition-all duration-300 hover:shadow-2xl;
+    background: rgb(var(--kds-surface));
+    border: 1px solid rgb(var(--kds-border));
+    border-left-width: 6px;
   }
   
   .order-card.new {
-    @apply border-l-status-new;
+    @apply border-l-emerald-500 shadow-lg shadow-emerald-500/10;
   }
   
   .order-card.preparing {
-    @apply border-l-status-preparing;
+    @apply border-l-amber-500 shadow-lg shadow-amber-500/10;
   }
   
   .order-card.ready {
-    @apply border-l-status-ready animate-pulse;
+    @apply border-l-red-500 shadow-lg shadow-red-500/20;
+    animation: pulseGlow 2s ease-in-out infinite;
   }
   
   .order-card.overdue {
-    @apply border-l-red-600 shadow-lg shadow-red-500/20 animate-flash;
+    @apply border-l-red-600 shadow-xl shadow-red-500/30;
+    animation: flashUrgent 1s ease-in-out infinite;
   }
   
+  /* Modern Station Headers */
   .station-header {
-    @apply sticky top-0 z-10 backdrop-blur-sm bg-white/90 border-b border-gray-200 px-4 py-3 font-semibold text-gray-800;
+    @apply sticky top-0 z-10 backdrop-blur-md px-6 py-4 font-bold text-lg border-b;
+    background: rgba(var(--kds-surface), 0.95);
+    border-color: rgb(var(--kds-border));
+    color: rgb(var(--kds-text-primary));
   }
   
   .priority-urgent {
@@ -91,36 +112,67 @@
 }
 
 @layer components {
+  /* Modern Button System */
   .btn-primary {
-    @apply bg-ada-500 hover:bg-ada-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-ada-500 hover:bg-ada-600 active:bg-ada-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl;
+    min-height: 44px; /* Touch target size */
   }
   
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50;
+    @apply hover:bg-gray-700 active:bg-gray-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 disabled:opacity-50 border;
+    background: rgb(var(--kds-surface));
+    border-color: rgb(var(--kds-border));
+    min-height: 44px;
   }
   
   .btn-danger {
-    @apply bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+    @apply bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl;
+    min-height: 44px;
   }
   
   .btn-success {
-    @apply bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+    @apply bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl;
+    min-height: 44px;
   }
   
+  /* Modern Status Badges */
   .status-badge {
-    @apply px-2 py-1 rounded-full text-xs font-medium uppercase tracking-wide;
+    @apply px-3 py-1 rounded-lg text-sm font-bold uppercase tracking-wider;
   }
   
+  .status-badge.new {
+    @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
+  }
+  
+  .status-badge.preparing {
+    @apply bg-amber-500/20 text-amber-400 border border-amber-500/30;
+  }
+  
+  .status-badge.ready {
+    @apply bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+  
+  /* Modern Timer Display */
   .timer-display {
-    @apply font-mono text-lg font-bold tabular-nums;
+    @apply font-mono text-2xl font-black tabular-nums;
   }
   
+  /* Modern Station Columns */
   .station-column {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 min-h-screen max-h-screen overflow-hidden flex flex-col;
+    @apply rounded-xl shadow-lg border min-h-screen max-h-screen overflow-hidden flex flex-col;
+    background: rgb(var(--kds-surface));
+    border-color: rgb(var(--kds-border));
   }
   
   .order-grid {
-    @apply grid gap-4 p-4 overflow-y-auto custom-scrollbar;
+    @apply grid gap-5 p-6 overflow-y-auto custom-scrollbar;
+  }
+  
+  /* Touch-Optimized Card Actions */
+  .card-action-button {
+    @apply font-bold py-4 px-6 rounded-xl transition-all duration-200 text-lg;
+    min-height: 56px;
+    min-width: 120px;
   }
 }
 
@@ -129,6 +181,7 @@
     text-wrap: balance;
   }
   
+  /* Modern KDS Animations */
   .animate-flash {
     animation: flash 1s ease-in-out infinite;
   }
@@ -141,6 +194,19 @@
     animation: bounceSubtle 1s ease-in-out infinite;
   }
   
+  /* Custom KDS Animations */
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+  
+  .animate-flash-urgent {
+    animation: flashUrgent 1s ease-in-out infinite;
+  }
+  
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+  
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -149,6 +215,40 @@
   
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Modern KDS Keyframe Animations */
+@keyframes pulseGlow {
+  0%, 100% { 
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  }
+  50% { 
+    opacity: 0.8;
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+  }
+}
+
+@keyframes flashUrgent {
+  0%, 100% { 
+    background-color: rgba(var(--kds-surface));
+    border-left-color: rgb(239, 68, 68);
+  }
+  50% { 
+    background-color: rgba(239, 68, 68, 0.1);
+    border-left-color: rgb(239, 68, 68);
+  }
+}
+
+@keyframes slideIn {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 

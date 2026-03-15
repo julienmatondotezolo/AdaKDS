@@ -1,7 +1,7 @@
 'use client';
 
-import { KDSDisplay } from '@/components/kds/kds-display';
+import { ModernKDSDisplay } from '@/components/kds/modern-kds-display';
 
 export default function HomePage() {
-  return <KDSDisplay />;
+  return <ModernKDSDisplay />;
 }

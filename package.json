@@ -4,7 +4,7 @@
   "description": "AdaKDS - Kitchen Display System Frontend",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 5006",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

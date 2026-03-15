@@ -37,21 +37,35 @@ const config: Config = {
           high: '#F59E0B',     // Amber
           urgent: '#EF4444',   // Red
         },
-        // Status colors  
+        // Modern KDS Status colors  
         status: {
-          new: '#10B981',      // Emerald
-          preparing: '#F59E0B', // Amber
-          ready: '#EF4444',    // Red
-          completed: '#6B7280', // Gray
+          new: '#10B981',      // Emerald - calm, organized
+          preparing: '#F59E0B', // Amber - active, working
+          ready: '#EF4444',    // Red - urgent, attention
+          completed: '#6B7280', // Gray - finished
           cancelled: '#9CA3AF', // Light gray
+        },
+        
+        // KDS System colors
+        kds: {
+          bg: '#1a1a1a',       // Deep charcoal background
+          surface: '#262626',   // Card surfaces
+          border: '#404040',    // Subtle borders
+          'text-primary': '#ffffff',    // Primary text
+          'text-secondary': '#a3a3a3',  // Secondary text
+          'text-muted': '#737373',      // Muted text
         },
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
+        'slide-in': 'slideIn 0.3s ease-out',
         'pulse-soft': 'pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
         'bounce-subtle': 'bounceSubtle 1s ease-in-out infinite',
         'flash': 'flash 1s ease-in-out',
+        'flash-urgent': 'flashUrgent 1s ease-in-out infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
       },
       keyframes: {
         fadeIn: {
@@ -62,9 +76,23 @@ const config: Config = {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
+        slideIn: {
+          '0%': { transform: 'translateY(-10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
         pulseSoft: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.5' },
+        },
+        pulseGlow: {
+          '0%, 100%': { 
+            opacity: '1',
+            boxShadow: '0 0 20px rgba(239, 68, 68, 0.3)',
+          },
+          '50%': { 
+            opacity: '0.8',
+            boxShadow: '0 0 30px rgba(239, 68, 68, 0.5)',
+          },
         },
         bounceSubtle: {
           '0%, 100%': { transform: 'translateY(0)' },
@@ -73,6 +101,20 @@ const config: Config = {
         flash: {
           '0%, 100%': { backgroundColor: 'transparent' },
           '50%': { backgroundColor: 'rgba(251, 191, 36, 0.2)' },
+        },
+        flashUrgent: {
+          '0%, 100%': { 
+            backgroundColor: 'rgb(38, 38, 38)',
+            borderLeftColor: 'rgb(239, 68, 68)',
+          },
+          '50%': { 
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderLeftColor: 'rgb(239, 68, 68)',
+          },
+        },
+        glow: {
+          '0%': { boxShadow: '0 0 5px rgba(77, 106, 255, 0.5)' },
+          '100%': { boxShadow: '0 0 20px rgba(77, 106, 255, 0.8)' },
         },
       },
       fontFamily: {
