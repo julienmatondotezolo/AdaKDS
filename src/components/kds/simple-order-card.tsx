@@ -1,6 +1,9 @@
 'use client';
 
 import React from 'react';
+import { Card } from 'ada-design-system';
+import { Button } from '@/components/ui/button';
+import { UtensilsCrossed } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types';
 
@@ -11,6 +14,7 @@ interface SimpleOrderCardProps {
   onPause?: () => void;
   onFinish?: () => void;
   onPrint?: () => void;
+  onComplete?: (type: 'served' | 'pickup' | 'delivery') => void;
 }
 
 export const SimpleOrderCard: React.FC<SimpleOrderCardProps> = ({
@@ -20,6 +24,7 @@ export const SimpleOrderCard: React.FC<SimpleOrderCardProps> = ({
   onPause,
   onFinish,
   onPrint,
+  onComplete,
 }) => {
   // Calculate elapsed time
   const orderTime = new Date(order.order_time);
@@ -84,8 +89,8 @@ export const SimpleOrderCard: React.FC<SimpleOrderCardProps> = ({
   };
 
   return (
-    <div className={cn(
-      "bg-white rounded-lg shadow-lg overflow-hidden border-2",
+    <Card className={cn(
+      "overflow-hidden border-2 shadow-lg",
       colorScheme[type].border
     )}>
       {/* Card Header */}
@@ -137,48 +142,95 @@ export const SimpleOrderCard: React.FC<SimpleOrderCardProps> = ({
         <div className="flex gap-2 pt-2 border-t border-gray-200">
           {type === 'new' && (
             <>
-              <button
+              <Button
                 onClick={onStart}
-                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors text-lg"
+                variant="primary"
+                size="lg"
+                className="flex-1 text-lg font-semibold"
               >
                 Start
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={onFinish}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-semibold transition-colors text-lg"
+                variant="secondary"
+                size="lg"
+                className="flex-1 text-lg font-semibold"
               >
                 Finish
-              </button>
+              </Button>
             </>
           )}
           
           {type === 'process' && (
             <>
-              <button
+              <Button
                 onClick={onPause}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 px-4 rounded-lg font-semibold transition-colors text-lg"
+                variant="secondary"
+                size="lg"
+                className="flex-1 text-lg font-semibold"
               >
                 Pause
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={onFinish}
-                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors text-lg"
+                variant="primary"
+                size="lg"
+                className="flex-1 text-lg font-semibold"
               >
                 Finish
-              </button>
+              </Button>
             </>
           )}
           
           {type === 'ready' && (
-            <button
-              onClick={onPrint}
-              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-semibold transition-colors text-lg"
-            >
-              Print
-            </button>
+            <div className="space-y-2">
+              {/* Completion buttons based on customer type */}
+              {order.customer_type === 'dine_in' && (
+                <Button
+                  onClick={() => onComplete?.('served')}
+                  variant="primary"
+                  size="lg"
+                  className="w-full text-lg font-semibold"
+                >
+                  Served
+                </Button>
+              )}
+              
+              {order.customer_type === 'takeaway' && (
+                <Button
+                  onClick={() => onComplete?.('pickup')}
+                  variant="primary"
+                  size="lg"
+                  className="w-full text-lg font-semibold"
+                >
+                  Pickup
+                </Button>
+              )}
+              
+              {order.customer_type === 'delivery' && (
+                <Button
+                  onClick={() => onComplete?.('delivery')}
+                  variant="primary"
+                  size="lg"
+                  className="w-full text-lg font-semibold"
+                >
+                  Delivery
+                </Button>
+              )}
+              
+              {/* Print button as secondary action */}
+              <Button
+                onClick={onPrint}
+                variant="secondary"
+                size="lg"
+                className="w-full text-lg font-semibold"
+              >
+                Print Receipt
+              </Button>
+            </div>
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 };

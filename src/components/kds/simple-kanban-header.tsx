@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { ChefHat, Wifi, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SimpleKanbanHeaderProps {
@@ -17,19 +18,37 @@ export const SimpleKanbanHeader: React.FC<SimpleKanbanHeaderProps> = ({
   isConnected,
 }) => {
   const totalServed = 0; // For future implementation
+  
+  // Real-time clock state
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div className="bg-gray-800 border-b border-gray-700">
+    <div className="bg-white border-b border-gray-200 shadow-sm">
       <div className="flex justify-between items-center px-6 py-4">
-        {/* Left side - Restaurant branding */}
+        {/* Left side - Logo & Restaurant branding */}
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-              <span className="text-white text-2xl">🍝</span>
+            {/* AdaKDS Logo */}
+            <img 
+              src="/icon-192x192.png" 
+              alt="AdaKDS Logo" 
+              className="w-12 h-12 rounded-lg shadow-sm"
+            />
+            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center ml-2">
+              <ChefHat className="text-white w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-white text-xl font-bold">AdaKDS</h1>
-              <p className="text-gray-400 text-sm">Italian Restaurant</p>
+              <h1 className="text-gray-900 text-xl font-bold">AdaKDS</h1>
+              <p className="text-gray-600 text-sm">Kitchen Display System</p>
             </div>
           </div>
         </div>
@@ -61,34 +80,40 @@ export const SimpleKanbanHeader: React.FC<SimpleKanbanHeaderProps> = ({
           </div>
         </div>
 
-        {/* Right side - Connection status and time */}
-        <div className="flex items-center space-x-4">
-          {/* Current time */}
-          <div className="text-white text-right">
-            <div className="text-xl font-bold">
-              {new Date().toLocaleTimeString('en-US', {
+        {/* Right side - Real-time clock and connection status */}
+        <div className="flex items-center space-x-6">
+          {/* Real-time clock in HH:MM:SS format */}
+          <div className="text-gray-900 text-right">
+            <div className="text-2xl font-bold font-mono">
+              {currentTime.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: true
+                second: '2-digit',
+                hour12: false
               })}
             </div>
-            <div className="text-gray-400 text-sm">
-              {new Date().toLocaleDateString('en-US', {
+            <div className="text-gray-600 text-sm">
+              {currentTime.toLocaleDateString('en-US', {
+                weekday: 'short',
                 month: 'short',
                 day: 'numeric'
               })}
             </div>
           </div>
 
-          {/* Connection status */}
+          {/* Connection status with proper icon */}
           <div className="flex items-center space-x-2">
-            <div className={cn(
-              "w-3 h-3 rounded-full",
-              isConnected ? "bg-green-400 animate-pulse" : "bg-red-400"
-            )}></div>
+            {isConnected ? (
+              <Wifi className={cn(
+                "w-5 h-5 text-green-600",
+                isConnected && "animate-pulse"
+              )} />
+            ) : (
+              <WifiOff className="w-5 h-5 text-red-600" />
+            )}
             <span className={cn(
               "text-sm font-medium",
-              isConnected ? "text-green-400" : "text-red-400"
+              isConnected ? "text-green-700" : "text-red-700"
             )}>
               {isConnected ? 'LIVE' : 'OFFLINE'}
             </span>

@@ -1,4 +1,4 @@
-# Simple Kanban Redesign - COMPLETE ✅
+# Simple Kanban Redesign - LIGHT THEME + ADA DESIGN SYSTEM ✅
 
 ## Overview
 Successfully redesigned AdaKDS frontend with a simple 3-column kanban board based on the reference image. Completely replaced the complex station-based system with a clean, touch-optimized kanban interface perfect for Italian restaurant kitchen displays.
@@ -113,9 +113,28 @@ Created realistic Italian restaurant orders including:
 ## ✨ DESIGN SUCCESS
 The new simple kanban board perfectly captures the clean, professional aesthetic of the reference image while being specifically tailored for Italian restaurant operations. Touch-optimized for kitchen tablets with clear visual hierarchy and intuitive workflow.
 
-**Total Development Time**: ~2 hours
-**Files Created/Modified**: 6 files
-**Lines of Code**: ~500 lines
+## 🔄 UPDATED REQUIREMENTS (March 15, 2026 - 18:06)
+
+### Light Theme + Ada Design System Integration
+- ✅ **Light Theme**: Converted from dark to light theme (white/light gray backgrounds)
+- ✅ **Ada Design System**: Integrated Ada Card and Button components throughout
+- ✅ **Port 5006**: Maintained compliance with 5000-5999 range requirement
+- ✅ **Enhanced Design**: Professional light interface with proper contrast and shadows
+- ✅ **Touch Optimization**: Ada Design System buttons with proper sizing for tablets
+
+### Final Design Features
+- **Background**: Clean light gray (`bg-gray-50`) instead of dark
+- **Cards**: Ada Card components with `shadow-lg` elevation
+- **Buttons**: Ada Button variants (primary/secondary) with `size="lg"`
+- **Header**: White background with subtle borders and shadows
+- **Colors**: Preserved red/yellow/green column colors on light theme
+- **Typography**: Enhanced contrast with dark text on light backgrounds
+
+**Total Development Time**: ~3 hours (including light theme conversion)
+**Files Created/Modified**: 6 files + light theme updates
+**Lines of Code**: ~600 lines
+**Design System**: Ada components fully integrated
+**Theme**: Modern light theme with professional appearance
 **Complexity Reduction**: 90% simpler than original station-based system
 
-This redesign transforms AdaKDS from a complex multi-station system into an elegant, single-view kanban board that kitchen staff can operate efficiently during busy service periods.
+This redesign transforms AdaKDS from a complex multi-station system into an elegant, single-view kanban board with modern light theme styling and Ada Design System components - perfect for kitchen staff to operate efficiently during busy service periods.
