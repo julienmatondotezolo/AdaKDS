@@ -32,18 +32,18 @@ export const useSocket = () => {
     });
 
     socket.on('disconnect', () => {
-      console.log('❌ Disconnected from KDS WebSocket');
+      console.log('[SOCKET] Disconnected from KDS WebSocket');
       setConnected(false);
     });
 
     socket.on('connect_error', (error) => {
-      console.error('❌ Socket connection error:', error);
+      console.error('[SOCKET] Connection error:', error);
       setConnected(false);
     });
 
     // Order event handlers
     socket.on('order_status_updated', (data: SocketEvents['order_status_updated']) => {
-      console.log(`📝 Order ${data.order_id}: ${data.old_status} → ${data.new_status}`);
+      console.log(`[ORDER] ${data.order_id}: ${data.old_status} -> ${data.new_status}`);
       updateOrder(data.order_id, { 
         status: data.new_status,
         updated_at: data.updated_at 
@@ -54,7 +54,7 @@ export const useSocket = () => {
     });
 
     socket.on('order_bumped', (data: SocketEvents['order_bumped']) => {
-      console.log(`⬆️ Order ${data.order_id} bumped: ${data.old_status} → ${data.new_status}`);
+      console.log(`[ORDER] ${data.order_id} bumped: ${data.old_status} -> ${data.new_status}`);
       updateOrder(data.order_id, { 
         status: data.new_status,
         updated_at: data.bump_time 
@@ -66,13 +66,13 @@ export const useSocket = () => {
 
     // Station event handlers
     socket.on('station_updated', (data: SocketEvents['station_updated']) => {
-      console.log(`🏢 Station updated: ${data.station.name}`);
+      console.log(`[STATION] Updated: ${data.station.name}`);
       // Could update stations in store if needed
     });
 
     // Display event handlers
     socket.on('display_config_updated', (data: SocketEvents['display_config_updated']) => {
-      console.log('🖥️ Display config updated');
+      console.log('[DISPLAY] Config updated');
       setConfig(data.config);
     });
 
@@ -82,12 +82,12 @@ export const useSocket = () => {
     });
 
     socket.on('display_notification', (data: SocketEvents['display_notification']) => {
-      console.log(`📢 Notification: ${data.title || data.message}`);
+      console.log(`[NOTIFICATION] ${data.title || data.message}`);
       showNotification(data);
     });
 
     socket.on('force_refresh', () => {
-      console.log('🔄 Force refresh received');
+      console.log('[DISPLAY] Force refresh received');
       window.location.reload();
     });
 

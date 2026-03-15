@@ -40,36 +40,36 @@ export const KDSDisplay: React.FC = () => {
         setIsLoading(true);
 
         // Load in parallel for better performance
-        console.log('🔄 Loading initial data...');
+        console.log('[KDS] Loading initial data...');
         
         const [ordersResponse, stationsResponse, configResponse] = await Promise.all([
           ordersApi.getAll().then(res => {
-            console.log('📦 Orders API response type:', typeof res, 'isArray:', Array.isArray(res));
-            console.log('📦 Orders API response:', res);
+            console.log('[ORDERS] API response type:', typeof res, 'isArray:', Array.isArray(res));
+            console.log('[ORDERS] API response:', res);
             return res;
           }).catch(err => {
-            console.error('❌ Orders API error:', err);
+            console.error('[ORDERS] API error:', err);
             return []; // Return empty array on error
           }),
           stationsApi.getAll().then(res => {
-            console.log('🏪 Stations API response type:', typeof res, 'isArray:', Array.isArray(res));
-            console.log('🏪 Stations API response:', res);
+            console.log('[STATIONS] API response type:', typeof res, 'isArray:', Array.isArray(res));
+            console.log('[STATIONS] API response:', res);
             return res;
           }).catch(err => {
-            console.error('❌ Stations API error:', err);
+            console.error('[STATIONS] API error:', err);
             return []; // Return empty array on error
           }),
           displayApi.getConfig().then(res => {
-            console.log('⚙️ Config API response type:', typeof res);
-            console.log('⚙️ Config API response:', res);
+            console.log('[CONFIG] API response type:', typeof res);
+            console.log('[CONFIG] API response:', res);
             return res;
           }).catch(err => {
-            console.log('⚙️ Config API error (optional):', err);
+            console.log('[CONFIG] API error (optional):', err);
             return null;
           })
         ]);
 
-        console.log('✅ All API calls completed');
+        console.log('[KDS] All API calls completed successfully');
 
         // Handle orders response format
         if (Array.isArray(ordersResponse)) {
