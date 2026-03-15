@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StationColumn } from './station-column';
-import { ProfessionalKDSHeader } from './professional-kds-header';
+import { KDSHeader } from './kds-header';
 import { useKDSStore, useOrdersByStation, useKitchenMetrics } from '@/store/kds-store';
 import { useSocket } from '@/hooks/use-socket';
 import { ordersApi, stationsApi, displayApi } from '@/lib/api';
@@ -25,8 +25,13 @@ export const KDSDisplay: React.FC = () => {
   
   const ordersByStation = useOrdersByStation();
   const kitchenMetrics = useKitchenMetrics();
-  const { isConnected } = useSocket();
+  const { isConnected } = useSocket(); // Re-enabled
 
+  // Create stable callbacks to avoid useEffect dependency issues
+  const stableSetOrders = useCallback(setOrders, [setOrders]);
+  const stableSetStations = useCallback(setStations, [setStations]);
+  const stableSetConfig = useCallback(setConfig, [setConfig]);
+  
   // Load initial data
   useEffect(() => {
     const loadInitialData = async () => {
@@ -35,22 +40,67 @@ export const KDSDisplay: React.FC = () => {
         setIsLoading(true);
 
         // Load in parallel for better performance
+        console.log('🔄 Loading initial data...');
+        
         const [ordersResponse, stationsResponse, configResponse] = await Promise.all([
-          ordersApi.getAll(),
-          stationsApi.getAll(),
-          displayApi.getConfig().catch(() => ({ success: true, config: null })) // Config is optional
+          ordersApi.getAll().then(res => {
+            console.log('📦 Orders API response type:', typeof res, 'isArray:', Array.isArray(res));
+            console.log('📦 Orders API response:', res);
+            return res;
+          }).catch(err => {
+            console.error('❌ Orders API error:', err);
+            return []; // Return empty array on error
+          }),
+          stationsApi.getAll().then(res => {
+            console.log('🏪 Stations API response type:', typeof res, 'isArray:', Array.isArray(res));
+            console.log('🏪 Stations API response:', res);
+            return res;
+          }).catch(err => {
+            console.error('❌ Stations API error:', err);
+            return []; // Return empty array on error
+          }),
+          displayApi.getConfig().then(res => {
+            console.log('⚙️ Config API response type:', typeof res);
+            console.log('⚙️ Config API response:', res);
+            return res;
+          }).catch(err => {
+            console.log('⚙️ Config API error (optional):', err);
+            return null;
+          })
         ]);
 
-        if (ordersResponse.success) {
-          setOrders(ordersResponse.orders);
+        console.log('✅ All API calls completed');
+
+        // Handle orders response format
+        if (Array.isArray(ordersResponse)) {
+          console.log('Setting orders (direct array):', ordersResponse.length, 'orders');
+          stableSetOrders(ordersResponse);
+        } else if (ordersResponse?.success && ordersResponse?.orders) {
+          console.log('Setting orders (wrapped response):', ordersResponse.orders.length, 'orders');
+          stableSetOrders(ordersResponse.orders);
+        } else {
+          console.error('Unexpected orders response format:', ordersResponse);
         }
 
-        if (stationsResponse.success) {
-          setStations(stationsResponse.stations);
+        // Handle stations response format
+        if (Array.isArray(stationsResponse)) {
+          console.log('Setting stations (direct array):', stationsResponse.length, 'stations');
+          stableSetStations(stationsResponse);
+        } else if (stationsResponse?.success && stationsResponse?.stations) {
+          console.log('Setting stations (wrapped response):', stationsResponse.stations.length, 'stations');
+          stableSetStations(stationsResponse.stations);
+        } else {
+          console.error('Unexpected stations response format:', stationsResponse);
         }
 
-        if (configResponse.success && configResponse.config) {
-          setConfig(configResponse.config);
+        if (configResponse && typeof configResponse === 'object') {
+          // Handle both wrapped and direct config responses
+          if ('success' in configResponse && configResponse.success && configResponse.config) {
+            stableSetConfig(configResponse.config);
+          } else if ('restaurant_id' in configResponse) {
+            // Direct config response - cast to DisplayConfig type
+            stableSetConfig(configResponse as any);
+          }
         }
 
       } catch (error) {
@@ -62,15 +112,18 @@ export const KDSDisplay: React.FC = () => {
     };
 
     loadInitialData();
-  }, [setOrders, setStations, setConfig]);
+  }, [stableSetOrders, stableSetStations, stableSetConfig]); // Include stable callbacks
 
   // Refresh orders every 30 seconds
   useEffect(() => {
     const refreshInterval = setInterval(async () => {
       try {
         const response = await ordersApi.getAll();
-        if (response.success) {
-          setOrders(response.orders);
+        // Handle both array and wrapped response formats
+        if (Array.isArray(response)) {
+          stableSetOrders(response);
+        } else if (response?.success && response?.orders) {
+          stableSetOrders(response.orders);
         }
       } catch (error) {
         console.error('Failed to refresh orders:', error);
@@ -78,7 +131,7 @@ export const KDSDisplay: React.FC = () => {
     }, 30000); // 30 seconds
 
     return () => clearInterval(refreshInterval);
-  }, [setOrders]);
+  }, [stableSetOrders]); // Include stable setOrders callback
 
   const handleBumpOrder = async (orderId: string) => {
     try {
@@ -106,10 +159,13 @@ export const KDSDisplay: React.FC = () => {
     }
   };
 
-  // Filter stations based on selection
-  const activeStations = stations.filter(station => 
-    station.active && selectedStations.includes(station.code)
-  );
+  // Filter stations based on selection - temporarily showing all active stations for debugging
+  const activeStations = stations.filter(station => station.active);
+  
+  // Debug logging (can be removed in production)
+  // console.log('Debug - Stations:', stations);
+  // console.log('Debug - Selected Stations:', selectedStations);
+  // console.log('Debug - Active Stations:', activeStations);
 
   if (isLoading) {
     return (
@@ -147,7 +203,7 @@ export const KDSDisplay: React.FC = () => {
   return (
     <div className="kds-container">
       {/* Header */}
-      <ProfessionalKDSHeader 
+      <KDSHeader 
         isConnected={isConnected}
         metrics={kitchenMetrics}
         stations={stations}

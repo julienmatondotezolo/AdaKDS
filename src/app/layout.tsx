@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import 'ada-design-system/styles.css';
 import './globals.css';
@@ -15,13 +15,18 @@ export const metadata: Metadata = {
   keywords: ['kds', 'kitchen', 'display', 'restaurant', 'orders', 'ada systems'],
   authors: [{ name: 'Ada Systems' }],
   robots: 'noindex, nofollow', // Private kitchen system
-  viewport: 'width=device-width, initial-scale=1, user-scalable=no',
-  themeColor: '#4d6aff',
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  userScalable: false,
+  themeColor: '#4d6aff',
 };
 
 export default function RootLayout({

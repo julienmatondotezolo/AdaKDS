@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Wifi, WifiOff, Clock, TrendingUp, AlertCircle, Users, Bell, Volume2, VolumeX } from 'lucide-react';
+import { Settings, Wifi, WifiOff, Clock, TrendingUp, AlertCircle, Users, Bell, Volume2, VolumeX, CheckCircle, ChefHat } from 'lucide-react';
 import { Card, Badge, Switch } from 'ada-design-system';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';

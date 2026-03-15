@@ -16,7 +16,7 @@ interface KDSHeaderProps {
     completed: number;
     overdue: number;
     avgPrepTime: number;
-  };
+  } | null;
   stations: Station[];
   config: DisplayConfig | null;
 }
@@ -29,6 +29,17 @@ export const KDSHeader: React.FC<KDSHeaderProps> = ({
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showSettings, setShowSettings] = useState(false);
+
+  // Safe getter for metrics with default values
+  const safeMetrics = {
+    total: metrics?.total || 0,
+    new: metrics?.new || 0,
+    preparing: metrics?.preparing || 0,
+    ready: metrics?.ready || 0,
+    completed: metrics?.completed || 0,
+    overdue: metrics?.overdue || 0,
+    avgPrepTime: metrics?.avgPrepTime || 0
+  };
 
   // Update clock every second
   useEffect(() => {
@@ -58,7 +69,7 @@ export const KDSHeader: React.FC<KDSHeaderProps> = ({
   };
 
   const getRushLevel = () => {
-    const totalActiveOrders = metrics.new + metrics.preparing + metrics.ready;
+    const totalActiveOrders = safeMetrics.new + safeMetrics.preparing + safeMetrics.ready;
     if (totalActiveOrders >= 15) return { level: 'extreme', color: 'text-red-500', label: 'EXTREME RUSH' };
     if (totalActiveOrders >= 10) return { level: 'high', color: 'text-orange-500', label: 'HIGH RUSH' };
     if (totalActiveOrders >= 5) return { level: 'moderate', color: 'text-yellow-500', label: 'MODERATE' };
@@ -100,16 +111,16 @@ export const KDSHeader: React.FC<KDSHeaderProps> = ({
               {rushLevel.label}
             </div>
             <div className="text-sm text-gray-500">
-              {metrics.new + metrics.preparing + metrics.ready} active orders
+              {safeMetrics.new + safeMetrics.preparing + safeMetrics.ready} active orders
             </div>
           </div>
 
           {/* Overdue Alert */}
-          {metrics.overdue > 0 && (
+          {safeMetrics.overdue > 0 && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               <AlertCircle className="h-5 w-5 text-red-500 animate-bounce-subtle" />
               <div>
-                <div className="font-bold text-red-700">{metrics.overdue} Overdue</div>
+                <div className="font-bold text-red-700">{safeMetrics.overdue} Overdue</div>
                 <div className="text-sm text-red-600">Orders need attention</div>
               </div>
             </div>
@@ -118,11 +129,11 @@ export const KDSHeader: React.FC<KDSHeaderProps> = ({
           {/* Performance Metrics */}
           <div className="flex items-center gap-6 text-sm">
             <div className="text-center">
-              <div className="font-bold text-lg text-gray-900">{metrics.avgPrepTime}m</div>
+              <div className="font-bold text-lg text-gray-900">{safeMetrics.avgPrepTime}m</div>
               <div className="text-gray-500">Avg Time</div>
             </div>
             <div className="text-center">
-              <div className="font-bold text-lg text-gray-900">{stations.filter(s => s.active).length}</div>
+              <div className="font-bold text-lg text-gray-900">{stations?.filter(s => s.active).length || 0}</div>
               <div className="text-gray-500">Stations</div>
             </div>
           </div>
@@ -166,19 +177,19 @@ export const KDSHeader: React.FC<KDSHeaderProps> = ({
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-status-new rounded-full"></div>
-              <span className="font-medium">{metrics.new} New</span>
+              <span className="font-medium">{safeMetrics.new} New</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-status-preparing rounded-full"></div>
-              <span className="font-medium">{metrics.preparing} Preparing</span>
+              <span className="font-medium">{safeMetrics.preparing} Preparing</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-status-ready rounded-full"></div>
-              <span className="font-medium">{metrics.ready} Ready</span>
+              <span className="font-medium">{safeMetrics.ready} Ready</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-status-completed rounded-full"></div>
-              <span className="font-medium">{metrics.completed} Completed</span>
+              <span className="font-medium">{safeMetrics.completed} Completed</span>
             </div>
           </div>
         </div>
