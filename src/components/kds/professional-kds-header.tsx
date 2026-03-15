@@ -64,25 +64,25 @@ export const ProfessionalKDSHeader: React.FC<ProfessionalKDSHeaderProps> = ({
       level: 'extreme', 
       color: 'bg-red-500 text-white', 
       label: 'EXTREME RUSH',
-      icon: '🔥'
+      icon: AlertCircle
     };
     if (totalActiveOrders >= 10) return { 
       level: 'high', 
       color: 'bg-orange-500 text-white', 
       label: 'HIGH RUSH',
-      icon: '⚡'
+      icon: TrendingUp
     };
     if (totalActiveOrders >= 5) return { 
       level: 'moderate', 
       color: 'bg-yellow-500 text-white', 
       label: 'MODERATE',
-      icon: '📈'
+      icon: TrendingUp
     };
     return { 
       level: 'low', 
       color: 'bg-green-500 text-white', 
       label: 'NORMAL',
-      icon: '✅'
+      icon: CheckCircle
     };
   };
 
@@ -121,7 +121,7 @@ export const ProfessionalKDSHeader: React.FC<ProfessionalKDSHeaderProps> = ({
             <Card className="p-4">
               <div className="text-center">
                 <div className={cn('inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-lg', rushLevel.color)}>
-                  <span>{rushLevel.icon}</span>
+                  {React.createElement(rushLevel.icon, { className: 'h-5 w-5' })}
                   {rushLevel.label}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
@@ -212,17 +212,17 @@ export const ProfessionalKDSHeader: React.FC<ProfessionalKDSHeaderProps> = ({
           <div className="flex items-center gap-6">
             {/* Order Status Breakdown */}
             <div className="flex items-center gap-4">
-              <Badge className="bg-green-100 text-green-800 px-3 py-1">
-                🆕 {metrics.new} New
+              <Badge className="bg-green-100 text-green-800 px-3 py-1 flex items-center gap-1">
+                <Bell className="h-3 w-3" /> {metrics.new} New
               </Badge>
-              <Badge className="bg-yellow-100 text-yellow-800 px-3 py-1">
-                👨‍🍳 {metrics.preparing} Preparing
+              <Badge className="bg-yellow-100 text-yellow-800 px-3 py-1 flex items-center gap-1">
+                <ChefHat className="h-3 w-3" /> {metrics.preparing} Preparing
               </Badge>
-              <Badge className="bg-red-100 text-red-800 px-3 py-1">
-                ✅ {metrics.ready} Ready
+              <Badge className="bg-red-100 text-red-800 px-3 py-1 flex items-center gap-1">
+                <Clock className="h-3 w-3" /> {metrics.ready} Ready
               </Badge>
-              <Badge className="bg-gray-100 text-gray-800 px-3 py-1">
-                ✔️ {metrics.completed} Completed
+              <Badge className="bg-gray-100 text-gray-800 px-3 py-1 flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" /> {metrics.completed} Completed
               </Badge>
             </div>
           </div>

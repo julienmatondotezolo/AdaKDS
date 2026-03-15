@@ -185,9 +185,9 @@ export const EnhancedOrderCard: React.FC<EnhancedOrderCardProps> = ({
                 className="flex-1 py-3 text-lg font-semibold"
               >
                 <ChefHat className="h-5 w-5 mr-2" />
-                {nextStatus === 'preparing' && '🔥 Start Cooking'}
-                {nextStatus === 'ready' && '✅ Mark Ready'}
-                {nextStatus === 'completed' && '🎯 Complete'}
+                {nextStatus === 'preparing' && 'Start Cooking'}
+                {nextStatus === 'ready' && 'Mark Ready'}
+                {nextStatus === 'completed' && 'Complete'}
               </Button>
             )}
             

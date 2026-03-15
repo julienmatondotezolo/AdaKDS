@@ -24,7 +24,7 @@ export const useSocket = () => {
 
     // Connection event handlers
     socket.on('connect', () => {
-      console.log('🔌 Connected to KDS WebSocket');
+      console.log('[SOCKET] Connected to KDS WebSocket');
       setConnected(true);
       
       // Join restaurant room
@@ -77,7 +77,7 @@ export const useSocket = () => {
     });
 
     socket.on('test_alert', (data: SocketEvents['test_alert']) => {
-      console.log(`🚨 Test alert: ${data.message}`);
+      console.log(`[ALERT] Test alert: ${data.message}`);
       showAlert(data);
     });
 
