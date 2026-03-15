@@ -115,6 +115,8 @@ export interface KDSStore {
   // Actions
   setOrders: (orders: Order[]) => void;
   updateOrder: (orderId: string, updates: Partial<Order>) => void;
+  addOrder: (order: Order) => void;
+  removeOrder: (orderId: string) => void;
   setStations: (stations: Station[]) => void;
   setConfig: (config: DisplayConfig) => void;
   setConnected: (connected: boolean) => void;

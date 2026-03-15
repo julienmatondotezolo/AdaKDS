@@ -27,6 +27,18 @@ export const useKDSStore = create<KDSStore>()(
       }));
     },
 
+    addOrder: (order: Order) => {
+      set((state) => ({
+        orders: [...state.orders, order],
+      }));
+    },
+
+    removeOrder: (orderId: string) => {
+      set((state) => ({
+        orders: state.orders.filter((order) => order.id !== orderId),
+      }));
+    },
+
     setStations: (stations: Station[]) => {
       set({ stations });
       

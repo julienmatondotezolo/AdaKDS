@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { SimpleOrderCard } from './simple-order-card';
 import { SimpleKanbanHeader } from './simple-kanban-header';
 import { useKDSStore } from '@/store/kds-store';
-import { useSocket } from '@/hooks/use-socket';
+import { useRealtime } from '@/hooks/use-realtime';
 import { ordersApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { CheckCircle, UtensilsCrossed, ChefHat, Clock } from 'lucide-react';
@@ -21,65 +21,20 @@ export const SimpleKanbanDisplay: React.FC = () => {
     markOrderCompleted
   } = useKDSStore();
   
-  const { isConnected } = useSocket();
+  const { isConnected } = useRealtime();
 
-  // Create stable callbacks to avoid useEffect dependency issues
-  const stableSetOrders = useCallback(setOrders, [setOrders]);
-  
-  // Load initial data
+  // Update loading state based on connection
   useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        setError(null);
+    if (isConnected) {
+      setIsLoading(false);
+      setError(null);
+    } else {
+      // Keep showing data but indicate connection issues
+      if (orders.length === 0) {
         setIsLoading(true);
-
-        console.log('[Simple Kanban] Loading orders from API...');
-        
-        // Always use real API - no more dummy data
-        const ordersResponse = await ordersApi.getAll().catch(err => {
-          console.error('[ORDERS] API error:', err);
-          return { success: false, orders: [] };
-        });
-
-        // Handle orders response format
-        if (Array.isArray(ordersResponse)) {
-          stableSetOrders(ordersResponse);
-        } else if (ordersResponse?.success && ordersResponse?.orders) {
-          stableSetOrders(ordersResponse.orders);
-        } else {
-          console.log('[Simple Kanban] No orders available or API error, showing empty state');
-          stableSetOrders([]);
-        }
-
-      } catch (error) {
-        console.error('Failed to load orders:', error);
-        setError('Failed to load orders. Please refresh the page.');
-        stableSetOrders([]);
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    loadInitialData();
-  }, [stableSetOrders]);
-
-  // Refresh orders every 30 seconds
-  useEffect(() => {
-    const refreshInterval = setInterval(async () => {
-      try {
-        const response = await ordersApi.getAll();
-        if (Array.isArray(response)) {
-          stableSetOrders(response);
-        } else if (response?.success && response?.orders) {
-          stableSetOrders(response.orders);
-        }
-      } catch (error) {
-        console.error('Failed to refresh orders:', error);
-      }
-    }, 30000);
-
-    return () => clearInterval(refreshInterval);
-  }, [stableSetOrders]);
+    }
+  }, [isConnected, orders.length]);
 
   // Organize orders by status for kanban columns (exclude completed orders)
   const activeOrders = orders.filter(order => order.status !== 'completed' && order.status !== 'cancelled');
