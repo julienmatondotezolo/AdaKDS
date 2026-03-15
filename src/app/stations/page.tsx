@@ -486,7 +486,7 @@ export default function StationsPage() {
                 {/* Form Actions */}
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     onClick={() => setShowForm(false)}
                   >
                     Cancel
