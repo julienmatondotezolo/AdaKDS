@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { cn, getStationColor } from '@/lib/utils';
-import { OrderCard } from './order-card';
+import { EnhancedOrderCard } from './enhanced-order-card';
 import type { Order, Station } from '@/types';
 
 interface StationColumnProps {
@@ -89,7 +89,7 @@ export const StationColumn: React.FC<StationColumnProps> = ({
         ) : (
           <div className="space-y-4">
             {visibleOrders.map((order) => (
-              <OrderCard
+              <EnhancedOrderCard
                 key={order.id}
                 order={order}
                 onBump={onBumpOrder}

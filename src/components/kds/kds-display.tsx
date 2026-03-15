@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { StationColumn } from './station-column';
-import { KDSHeader } from './kds-header';
+import { ProfessionalKDSHeader } from './professional-kds-header';
 import { useKDSStore, useOrdersByStation, useKitchenMetrics } from '@/store/kds-store';
 import { useSocket } from '@/hooks/use-socket';
 import { ordersApi, stationsApi, displayApi } from '@/lib/api';
@@ -147,7 +147,7 @@ export const KDSDisplay: React.FC = () => {
   return (
     <div className="kds-container">
       {/* Header */}
-      <KDSHeader 
+      <ProfessionalKDSHeader 
         isConnected={isConnected}
         metrics={kitchenMetrics}
         stations={stations}

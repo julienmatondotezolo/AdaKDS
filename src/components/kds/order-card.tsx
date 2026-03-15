@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Clock, User, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Clock, User, AlertTriangle, CheckCircle, ChefHat, Timer } from 'lucide-react';
+import { Card, Badge, Toast } from 'ada-design-system';
 import { cn, formatElapsedTime, formatTimeToReady, getStatusColor, getPriorityColor, getOrderUrgency, canBumpOrder, getNextStatus } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { Order } from '@/types';
