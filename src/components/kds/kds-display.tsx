@@ -1,36 +1,67 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { StationColumn } from './station-column';
 import { KDSHeader } from './kds-header';
-import { useKDSStore, useOrdersByStation, useKitchenMetrics } from '@/store/kds-store';
+import { ModernOrderCard } from './modern-order-card';
+import { useKDSStore } from '@/store/kds-store';
 import { useSocket } from '@/hooks/use-socket';
-import { ordersApi, stationsApi, displayApi } from '@/lib/api';
+import { ordersApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { Bell, Flame, CheckCircle2, X, RotateCcw } from 'lucide-react';
+
+interface KanbanColumn {
+  id: string;
+  title: string;
+  status: 'NEW' | 'PROCESS' | 'READY' | 'SERVED';
+  icon: React.ReactNode;
+  color: string;
+}
+
+const KANBAN_COLUMNS: KanbanColumn[] = [
+  {
+    id: 'new',
+    title: 'NEW',
+    status: 'NEW',
+    icon: <Bell className="w-5 h-5" />,
+    color: 'text-blue-500'
+  },
+  {
+    id: 'process', 
+    title: 'PROCESS',
+    status: 'PROCESS',
+    icon: <Flame className="w-5 h-5" />,
+    color: 'text-orange-500'
+  },
+  {
+    id: 'ready',
+    title: 'READY', 
+    status: 'READY',
+    icon: <CheckCircle2 className="w-5 h-5" />,
+    color: 'text-green-500'
+  },
+  {
+    id: 'served',
+    title: 'SERVED',
+    status: 'SERVED', 
+    icon: <X className="w-5 h-5" />,
+    color: 'text-gray-500'
+  }
+];
 
 export const KDSDisplay: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const { 
-    stations, 
-    config, 
-    selectedStations,
+    orders,
     setOrders, 
-    setStations, 
-    setConfig,
-    bumpOrder: storeBumpOrder,
+    bumpOrder,
     markOrderCompleted
   } = useKDSStore();
   
-  const ordersByStation = useOrdersByStation();
-  const kitchenMetrics = useKitchenMetrics();
-  const { isConnected } = useSocket(); // Re-enabled
+  const { isConnected } = useSocket();
 
-  // Create stable callbacks to avoid useEffect dependency issues
   const stableSetOrders = useCallback(setOrders, [setOrders]);
-  const stableSetStations = useCallback(setStations, [setStations]);
-  const stableSetConfig = useCallback(setConfig, [setConfig]);
   
   // Load initial data
   useEffect(() => {
@@ -38,69 +69,33 @@ export const KDSDisplay: React.FC = () => {
       try {
         setError(null);
         setIsLoading(true);
-
-        // Load in parallel for better performance
-        console.log('[KDS] Loading initial data...');
+        console.log('[KDS] Loading orders...');
         
-        const [ordersResponse, stationsResponse, configResponse] = await Promise.all([
-          ordersApi.getAll().then(res => {
-            console.log('[ORDERS] API response type:', typeof res, 'isArray:', Array.isArray(res));
-            console.log('[ORDERS] API response:', res);
-            return res;
-          }).catch(err => {
-            console.error('[ORDERS] API error:', err);
-            return []; // Return empty array on error
-          }),
-          stationsApi.getAll().then(res => {
-            console.log('[STATIONS] API response type:', typeof res, 'isArray:', Array.isArray(res));
-            console.log('[STATIONS] API response:', res);
-            return res;
-          }).catch(err => {
-            console.error('[STATIONS] API error:', err);
-            return []; // Return empty array on error
-          }),
-          displayApi.getConfig().then(res => {
-            console.log('[CONFIG] API response type:', typeof res);
-            console.log('[CONFIG] API response:', res);
-            return res;
-          }).catch(err => {
-            console.log('[CONFIG] API error (optional):', err);
-            return null;
-          })
-        ]);
-
-        console.log('[KDS] All API calls completed successfully');
+        const ordersResponse = await ordersApi.getAll().catch(err => {
+          console.error('[ORDERS] API error:', err);
+          return []; // Return empty array on error
+        });
 
         // Handle orders response format
         if (Array.isArray(ordersResponse)) {
-          console.log('Setting orders (direct array):', ordersResponse.length, 'orders');
+          console.log('Setting orders:', ordersResponse.length, 'orders');
           stableSetOrders(ordersResponse);
-        } else if (ordersResponse?.success && ordersResponse?.orders) {
-          console.log('Setting orders (wrapped response):', ordersResponse.orders.length, 'orders');
-          stableSetOrders(ordersResponse.orders);
-        } else {
-          console.error('Unexpected orders response format:', ordersResponse);
-        }
-
-        // Handle stations response format
-        if (Array.isArray(stationsResponse)) {
-          console.log('Setting stations (direct array):', stationsResponse.length, 'stations');
-          stableSetStations(stationsResponse);
-        } else if (stationsResponse?.success && stationsResponse?.stations) {
-          console.log('Setting stations (wrapped response):', stationsResponse.stations.length, 'stations');
-          stableSetStations(stationsResponse.stations);
-        } else {
-          console.error('Unexpected stations response format:', stationsResponse);
-        }
-
-        if (configResponse && typeof configResponse === 'object') {
-          // Handle both wrapped and direct config responses
-          if ('success' in configResponse && configResponse.success && configResponse.config) {
-            stableSetConfig(configResponse.config);
-          } else if ('restaurant_id' in configResponse) {
-            // Direct config response - cast to DisplayConfig type
-            stableSetConfig(configResponse as any);
+        } else if (ordersResponse && typeof ordersResponse === 'object') {
+          if ('success' in ordersResponse && ordersResponse.success && 'orders' in ordersResponse) {
+            const orders = (ordersResponse as any).orders;
+            console.log('Setting orders (wrapped):', orders.length, 'orders');
+            stableSetOrders(orders);
+          } else if ('data' in ordersResponse) {
+            const data = (ordersResponse as any).data;
+            console.log('Setting orders (data prop):', data.length, 'orders');
+            stableSetOrders(data);
+          } else {
+            console.log('No orders found, setting empty array');
+            stableSetOrders([]);
           }
+        } else {
+          console.log('No orders found, setting empty array');
+          stableSetOrders([]);
         }
 
       } catch (error) {
@@ -112,7 +107,7 @@ export const KDSDisplay: React.FC = () => {
     };
 
     loadInitialData();
-  }, [stableSetOrders, stableSetStations, stableSetConfig]); // Include stable callbacks
+  }, [stableSetOrders]);
 
   // Refresh orders every 30 seconds
   useEffect(() => {
@@ -122,8 +117,12 @@ export const KDSDisplay: React.FC = () => {
         // Handle both array and wrapped response formats
         if (Array.isArray(response)) {
           stableSetOrders(response);
-        } else if (response?.success && response?.orders) {
-          stableSetOrders(response.orders);
+        } else if (response && typeof response === 'object') {
+          if ('success' in response && response.success && 'orders' in response) {
+            stableSetOrders((response as any).orders);
+          } else if ('data' in response) {
+            stableSetOrders((response as any).data);
+          }
         }
       } catch (error) {
         console.error('Failed to refresh orders:', error);
@@ -131,50 +130,84 @@ export const KDSDisplay: React.FC = () => {
     }, 30000); // 30 seconds
 
     return () => clearInterval(refreshInterval);
-  }, [stableSetOrders]); // Include stable setOrders callback
+  }, [stableSetOrders]);
 
-  const handleBumpOrder = async (orderId: string) => {
+  const handleStartOrder = async (orderId: string) => {
     try {
-      // Optimistic update
-      storeBumpOrder(orderId);
-      
-      // API call
-      await ordersApi.bump(orderId);
+      bumpOrder(orderId);
+      await ordersApi.updateStatus(orderId, 'preparing');
     } catch (error) {
-      console.error('Failed to bump order:', error);
-      // TODO: Revert optimistic update or show error
+      console.error('Failed to start order:', error);
     }
   };
 
-  const handleCompleteOrder = async (orderId: string) => {
+  const handlePauseOrder = async (orderId: string) => {
     try {
-      // Optimistic update
-      markOrderCompleted(orderId);
-      
-      // API call
+      // Pause means stay in preparing status but with pause flag
+      await ordersApi.updateStatus(orderId, 'preparing');
+    } catch (error) {
+      console.error('Failed to pause order:', error);
+    }
+  };
+
+  const handleFinishOrder = async (orderId: string) => {
+    try {
+      await ordersApi.updateStatus(orderId, 'ready');
+    } catch (error) {
+      console.error('Failed to finish order:', error);
+    }
+  };
+
+  const handleServeOrder = async (orderId: string) => {
+    try {
       await ordersApi.updateStatus(orderId, 'completed');
     } catch (error) {
-      console.error('Failed to complete order:', error);
-      // TODO: Revert optimistic update or show error
+      console.error('Failed to serve order:', error);
     }
   };
 
-  // Filter stations based on selection - temporarily showing all active stations for debugging
-  const activeStations = stations.filter(station => station.active);
-  
-  // Debug logging (can be removed in production)
-  // console.log('Debug - Stations:', stations);
-  // console.log('Debug - Selected Stations:', selectedStations);
-  // console.log('Debug - Active Stations:', activeStations);
+  const handleUndoLastAction = () => {
+    // TODO: Implement undo functionality
+    console.log('Undo last action');
+  };
+
+  // Group orders by status with proper mapping
+  const ordersByStatus = orders.reduce((acc, order) => {
+    // Map backend status to frontend columns
+    let status: 'NEW' | 'PROCESS' | 'READY' | 'SERVED';
+    
+    switch (order.status?.toLowerCase()) {
+      case 'new':
+        status = 'NEW';
+        break;
+      case 'preparing':
+        status = 'PROCESS';
+        break;
+      case 'ready':
+        status = 'READY';
+        break;
+      case 'completed':
+        status = 'SERVED';
+        break;
+      default:
+        status = 'NEW'; // fallback
+    }
+    
+    if (!acc[status]) acc[status] = [];
+    acc[status].push(order);
+    return acc;
+  }, {} as Record<string, any[]>);
+
+  // Get order counts for each status
+  const getStatusCount = (status: string) => ordersByStatus[status]?.length || 0;
 
   if (isLoading) {
     return (
-      <div className="kds-container">
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-white text-lg">Loading Kitchen Display...</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-ada-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Loading Kitchen Display</h2>
+          <p className="text-gray-600 text-lg">Fetching orders...</p>
         </div>
       </div>
     );
@@ -182,104 +215,123 @@ export const KDSDisplay: React.FC = () => {
 
   if (error) {
     return (
-      <div className="kds-container">
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-2xl font-bold">!</span>
-            </div>
-            <h2 className="text-white text-xl mb-2">Connection Error</h2>
-            <p className="text-gray-300 mb-4">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="btn-primary"
-            >
-              Retry
-            </button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <X className="w-8 h-8 text-white" />
           </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Connection Error</h2>
+          <p className="text-gray-600 text-lg mb-6">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-ada-500 text-white rounded-lg hover:bg-ada-600 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="kds-container">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <KDSHeader 
-        isConnected={isConnected}
-        metrics={kitchenMetrics}
-        stations={stations}
-        config={config}
-      />
+      <KDSHeader isConnected={isConnected} />
 
-      {/* Connection Status */}
+      {/* Connection Status Warning */}
       {!isConnected && (
         <div className="bg-red-600 text-white px-4 py-2 text-center text-sm">
           WARNING: Disconnected from server - Orders may not update in real-time
         </div>
       )}
 
-      {/* Main Display Grid */}
-      <div className="flex-1 overflow-hidden">
-        {activeStations.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center text-white">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-gray-400 text-xs font-bold">SETUP</span>
+      {/* Status Overview Cards */}
+      <div className="p-6 pb-4">
+        <div className="grid grid-cols-4 gap-4">
+          {KANBAN_COLUMNS.map((column) => (
+            <div key={column.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={cn("p-2 rounded-lg bg-gray-100", column.color)}>
+                    {column.icon}
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">{column.title}</h3>
+                </div>
+                <div className="bg-gray-900 text-white px-3 py-1 rounded-full text-2xl font-bold">
+                  {getStatusCount(column.status)}
+                </div>
               </div>
-              <h2 className="text-xl mb-2">No Active Stations</h2>
-              <p className="text-gray-300">Configure stations to start displaying orders</p>
             </div>
-          </div>
-        ) : (
-          <div 
-            className={cn('grid gap-4 p-4 h-full', {
-              'grid-cols-1': activeStations.length === 1,
-              'grid-cols-2': activeStations.length === 2,
-              'grid-cols-3': activeStations.length === 3,
-              'grid-cols-4': activeStations.length >= 4,
-            })}
-          >
-            {activeStations
-              .sort((a, b) => a.display_order - b.display_order)
-              .map((station) => (
-                <StationColumn
-                  key={station.id}
-                  station={station}
-                  orders={ordersByStation[station.code] || []}
-                  onBumpOrder={handleBumpOrder}
-                  onCompleteOrder={handleCompleteOrder}
-                  maxOrdersPerColumn={config?.display_layout?.max_orders_per_column || 8}
-                />
-              ))}
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
-      {/* Footer Stats */}
-      <div className="bg-gray-800 border-t border-gray-700 px-4 py-2">
-        <div className="flex justify-between items-center text-sm text-gray-300">
-          <div className="flex gap-6">
-            <span>Total Orders: <span className="text-white font-medium">{kitchenMetrics.total}</span></span>
-            <span>New: <span className="text-status-new font-medium">{kitchenMetrics.new}</span></span>
-            <span>Preparing: <span className="text-status-preparing font-medium">{kitchenMetrics.preparing}</span></span>
-            <span>Ready: <span className="text-status-ready font-medium">{kitchenMetrics.ready}</span></span>
-          </div>
-          <div className="flex gap-6">
-            {kitchenMetrics.overdue > 0 && (
-              <span className="text-red-400 font-medium animate-pulse">
-                {kitchenMetrics.overdue} Overdue
-              </span>
-            )}
-            <span>Avg Time: <span className="text-white font-medium">{kitchenMetrics.avgPrepTime}m</span></span>
-            <span className={cn('font-medium', {
-              'text-green-400': isConnected,
-              'text-red-400': !isConnected
-            })}>
-              {isConnected ? 'LIVE' : 'OFFLINE'}
-            </span>
-          </div>
+      {/* Kanban Columns */}
+      <div className="px-6 pb-20">
+        <div className="grid grid-cols-4 gap-6 min-h-[600px]">
+          {KANBAN_COLUMNS.map((column) => (
+            <div key={column.id} className={cn(
+              "bg-white rounded-lg shadow-sm border border-gray-200 relative overflow-hidden",
+              {
+                'border-l-4 border-l-blue-500': column.status === 'NEW',
+                'border-l-4 border-l-orange-500': column.status === 'PROCESS',
+                'border-l-4 border-l-green-500': column.status === 'READY',
+                'border-l-4 border-l-gray-400': column.status === 'SERVED'
+              }
+            )}>
+              {/* Column Header */}
+              <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-600 tracking-wide">{column.title}</span>
+                    <span className="text-lg font-bold text-gray-900">
+                      {getStatusCount(column.status)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column Content */}
+              <div className="p-3 space-y-3 min-h-[500px] max-h-[600px] overflow-y-auto">
+                {ordersByStatus[column.status]?.length === 0 ? (
+                  <div className="text-center text-gray-400 mt-20">
+                    <div className="w-12 h-12 mx-auto mb-3 bg-gray-50 rounded-full flex items-center justify-center">
+                      {column.icon}
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {column.status === 'NEW' ? 'No new orders' : 
+                       column.status === 'PROCESS' ? 'No orders in process' :
+                       column.status === 'READY' ? 'No orders ready' : 'No orders served'}
+                    </p>
+                  </div>
+                ) : (
+                  ordersByStatus[column.status]?.map((order) => (
+                    <ModernOrderCard
+                      key={order.id}
+                      order={order}
+                      status={column.status}
+                      onStartOrder={handleStartOrder}
+                      onPauseOrder={handlePauseOrder}
+                      onFinishOrder={handleFinishOrder}
+                      onServeOrder={handleServeOrder}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          ))}
         </div>
+      </div>
+
+      {/* Undo Last Action Button */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2">
+        <button
+          onClick={handleUndoLastAction}
+          className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 transition-colors"
+        >
+          <RotateCcw className="w-5 h-5" />
+          Undo Last Action
+        </button>
       </div>
     </div>
   );

@@ -1,301 +1,211 @@
 'use client';
 
 import React from 'react';
-import { Clock, User, AlertTriangle, CheckCircle, ChefHat, Timer, Utensils, Flame, Zap } from 'lucide-react';
-import { cn, formatElapsedTime, formatTimeToReady, getOrderUrgency, canBumpOrder, getNextStatus } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { Pause, Check, Play, Utensils, Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Order } from '@/types';
 
 interface ModernOrderCardProps {
   order: Order;
-  onBump?: (orderId: string) => void;
-  onComplete?: (orderId: string) => void;
-  compact?: boolean;
+  status: 'NEW' | 'PROCESS' | 'READY' | 'SERVED';
+  onStartOrder?: (orderId: string) => void;
+  onPauseOrder?: (orderId: string) => void;
+  onFinishOrder?: (orderId: string) => void;
+  onServeOrder?: (orderId: string) => void;
 }
 
 export const ModernOrderCard: React.FC<ModernOrderCardProps> = ({ 
   order, 
-  onBump, 
-  onComplete,
-  compact = false 
+  status,
+  onStartOrder,
+  onPauseOrder, 
+  onFinishOrder,
+  onServeOrder
 }) => {
-  const urgency = getOrderUrgency(order);
-  const canBump = canBumpOrder(order.status);
-  const nextStatus = getNextStatus(order.status);
-  const isOverdue = urgency === 'critical';
+  // Calculate elapsed time in minutes
+  const getElapsedMinutes = () => {
+    if (!order.created_at) return 0;
+    const now = new Date();
+    const created = new Date(order.created_at);
+    return Math.floor((now.getTime() - created.getTime()) / (1000 * 60));
+  };
 
-  const handleBump = () => {
-    if (onBump && canBump) {
-      onBump(order.id);
+  // Get current time for display in circle
+  const getCurrentTimeDisplay = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    return `${hours}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  const elapsedMinutes = getElapsedMinutes();
+  const currentTime = getCurrentTimeDisplay();
+
+  // Get display order ID
+  const getOrderId = () => {
+    return order.order_number || order.id?.slice(-6).toUpperCase() || 'NO_ID';
+  };
+
+  // Get customer/table info
+  const getCustomerInfo = () => {
+    const customerName = order.customer_name || 'Guest';
+    if (order.customer_type === 'dine_in') {
+      return `Table - ${customerName}`;
+    } else if (order.customer_type === 'takeaway') {
+      return `Takeaway - ${customerName}`;
+    } else if (order.customer_type === 'delivery') {
+      return `Delivery - ${customerName}`;
+    }
+    return customerName;
+  };
+
+  // Handle action buttons
+  const handlePrimaryAction = () => {
+    if (status === 'NEW' && onStartOrder) {
+      onStartOrder(order.id);
+    } else if (status === 'PROCESS' && onFinishOrder) {
+      onFinishOrder(order.id);
+    } else if (status === 'READY' && onServeOrder) {
+      onServeOrder(order.id);
     }
   };
 
-  const handleComplete = () => {
-    if (onComplete) {
-      onComplete(order.id);
+  const handleSecondaryAction = () => {
+    if (status === 'PROCESS' && onPauseOrder) {
+      onPauseOrder(order.id);
     }
   };
 
-  // Modern KDS status colors
-  const getStatusColors = (status: string) => {
+  // Get action button config
+  const getActionButtons = () => {
     switch (status) {
-      case 'new':
-        return {
-          border: 'border-l-emerald-500',
-          bg: 'bg-emerald-500/10',
-          text: 'text-emerald-400',
-          glow: 'shadow-emerald-500/20'
-        };
-      case 'preparing':
-        return {
-          border: 'border-l-amber-500',
-          bg: 'bg-amber-500/10',
-          text: 'text-amber-400',
-          glow: 'shadow-amber-500/20'
-        };
-      case 'ready':
-        return {
-          border: 'border-l-red-500',
-          bg: 'bg-red-500/10',
-          text: 'text-red-400',
-          glow: 'shadow-red-500/30'
-        };
-      case 'completed':
-        return {
-          border: 'border-l-gray-500',
-          bg: 'bg-gray-500/10',
-          text: 'text-gray-400',
-          glow: 'shadow-gray-500/10'
-        };
+      case 'NEW':
+        return [
+          { 
+            label: 'Start', 
+            icon: Play, 
+            onClick: handlePrimaryAction, 
+            variant: 'primary' as const,
+            show: true
+          }
+        ];
+      case 'PROCESS':
+        return [
+          { 
+            label: 'Pause', 
+            icon: Pause, 
+            onClick: handleSecondaryAction, 
+            variant: 'secondary' as const,
+            show: true
+          },
+          { 
+            label: 'Finish', 
+            icon: Check, 
+            onClick: handlePrimaryAction, 
+            variant: 'success' as const,
+            show: true
+          }
+        ];
+      case 'READY':
+        return [
+          { 
+            label: 'Serve', 
+            icon: Check, 
+            onClick: handlePrimaryAction, 
+            variant: 'success' as const,
+            show: true
+          }
+        ];
       default:
-        return {
-          border: 'border-l-gray-500',
-          bg: 'bg-gray-500/10',
-          text: 'text-gray-400',
-          glow: 'shadow-gray-500/10'
-        };
+        return [];
     }
   };
 
-  const statusColors = getStatusColors(order.status);
-
-  const getPriorityIndicator = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return {
-          bg: 'bg-red-500/20',
-          text: 'text-red-400',
-          border: 'border-red-500/50',
-          icon: Flame
-        };
-      case 'high':
-        return {
-          bg: 'bg-orange-500/20',
-          text: 'text-orange-400',
-          border: 'border-orange-500/50',
-          icon: Zap
-        };
-      case 'normal':
-        return null;
-      default:
-        return null;
-    }
-  };
-
-  const priorityIndicator = getPriorityIndicator(order.priority);
+  const actionButtons = getActionButtons();
 
   return (
-    <div className={cn(
-      'order-card animate-slide-in',
-      statusColors.border,
-      statusColors.glow,
-      {
-        'animate-pulse-glow': order.status === 'ready',
-        'animate-flash-urgent': isOverdue,
-        'ring-2 ring-red-500/50 ring-offset-2 ring-offset-gray-900': isOverdue
-      }
-    )}>
-      {/* Header Section */}
-      <div className="p-6 border-b border-gray-700/50">
-        <div className="flex items-center justify-between mb-4">
-          {/* Order Number & Status */}
-          <div className="flex items-center gap-4">
-            <div className="text-4xl font-black text-white">
-              #{order.order_number}
-            </div>
-            <div className={cn(
-              'status-badge',
-              statusColors.bg,
-              statusColors.text
-            )}>
-              {order.status ? order.status.toUpperCase() : 'UNKNOWN'}
-            </div>
-            {priorityIndicator && (
-              <div className={cn(
-                'px-3 py-1 rounded-lg text-sm font-bold uppercase tracking-wider border',
-                priorityIndicator.bg,
-                priorityIndicator.text,
-                priorityIndicator.border
-              )}>
-                {order.priority ? order.priority.toUpperCase() : 'NORMAL'}
-              </div>
-            )}
-          </div>
-
-          {/* Timer Display */}
-          <div className={cn('timer-display flex items-center gap-2', {
-            'text-emerald-400': urgency === 'normal',
-            'text-amber-400': urgency === 'warning',
-            'text-red-400 animate-pulse': urgency === 'critical'
-          })}>
-            <Timer className="h-6 w-6" />
-            {formatElapsedTime(order.elapsed_time)}
-          </div>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+      {/* Header with table and order ID */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <h3 className="font-bold text-gray-900 text-base">
+            {getCustomerInfo()}
+          </h3>
+          <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+            <span className="text-gray-400">📋</span>
+            Order #{getOrderId()}
+          </p>
         </div>
-
-        {/* Customer & Order Type */}
-        <div className="flex items-center justify-between text-lg">
-          <div className="flex items-center gap-3">
-            <User className="h-5 w-5 text-gray-400" />
-            <span className="font-bold text-white">{order.customer_name}</span>
-            {order.customer_type === 'takeaway' && (
-              <div className="px-3 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/50 rounded-lg text-sm font-bold">
-                TAKEAWAY
-              </div>
-            )}
-            {order.customer_type === 'delivery' && (
-              <div className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/50 rounded-lg text-sm font-bold">
-                DELIVERY
-              </div>
-            )}
-          </div>
-          
-          <div className="text-sm text-gray-400">
-            Ready: <span className={cn('font-bold text-lg', {
-              'text-emerald-400': urgency === 'normal',
-              'text-amber-400': urgency === 'warning',
-              'text-red-400': urgency === 'critical'
-            })}>
-              {formatTimeToReady(order.estimated_ready_time, order.order_time)}
-            </span>
+        
+        {/* Timer circle - showing current time like reference image */}
+        <div className={cn(
+          "flex items-center justify-center w-14 h-14 rounded-full border-2",
+          status === 'NEW' && "bg-blue-50 border-blue-200",
+          status === 'PROCESS' && "bg-orange-50 border-orange-200", 
+          status === 'READY' && "bg-blue-50 border-blue-200",
+          status === 'SERVED' && "bg-gray-50 border-gray-200"
+        )}>
+          <div className="text-center">
+            <div className="text-xs font-bold text-gray-900 leading-tight">{currentTime}</div>
           </div>
         </div>
       </div>
 
-      {/* Items Section */}
-      <div className="p-6">
-        <div className="space-y-4">
-          {order.items.map((item, index) => (
-            <div key={item.id || index} className="border-b border-gray-700/30 pb-4 last:border-b-0 last:pb-0">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-ada-500 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">{item.quantity}</span>
-                    </div>
-                    <span className="font-bold text-white text-xl">
-                      {item.name}
-                    </span>
-                  </div>
-                  {item.special_requests && (
-                    <div className="ml-11 bg-amber-500/20 border-l-4 border-amber-500 p-3 rounded-r-lg">
-                      <div className="text-amber-400 font-bold text-sm mb-1">SPECIAL REQUEST</div>
-                      <div className="text-amber-300">{item.special_requests}</div>
-                    </div>
-                  )}
-                </div>
-                <div className="text-right ml-4">
-                  <div className="text-sm text-gray-400 mb-1">Est. {item.estimated_time}m</div>
-                  <div className="px-2 py-1 bg-gray-600/50 rounded text-xs text-gray-300 font-medium">
-                    {item.category ? item.category.toUpperCase() : 'MAIN'}
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* Items */}
+      <div className="space-y-1 mb-4">
+        {order.items?.map((item, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <Utensils className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-900">
+              {item.quantity}x {item.name}
+            </span>
+            {item.estimated_time && (
+              <span className="text-xs text-gray-500 ml-auto">
+                {item.estimated_time} mins
+              </span>
+            )}
+          </div>
+        )) || (
+          <div className="text-sm text-gray-500 italic">
+            No items available
+          </div>
+        )}
+      </div>
+
+      {/* Special requests display */}
+      {order.items?.some(item => item.special_requests) && (
+        <div className="mb-3">
+          {order.items.filter(item => item.special_requests).map((item, index) => (
+            <p key={index} className="text-xs text-gray-600 italic">
+              {item.name}: {item.special_requests}
+            </p>
           ))}
         </div>
-      </div>
+      )}
 
-      {/* Progress Section */}
-      <div className="px-6 pb-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="text-sm text-gray-400 font-medium">Progress</div>
-          <div className="flex-1 bg-gray-700 rounded-full h-3">
-            <div 
-              className={cn('h-3 rounded-full transition-all duration-500', {
-                'bg-emerald-500': urgency === 'normal',
-                'bg-amber-500': urgency === 'warning',
-                'bg-red-500 animate-pulse': urgency === 'critical'
-              })}
-              style={{ 
-                width: `${Math.min(Math.max((order.elapsed_time / (order.total_prep_time * 60)) * 100, 5), 100)}%` 
-              }}
-            />
-          </div>
-          <div className="text-sm text-gray-400">
-            {Math.round((order.elapsed_time / (order.total_prep_time * 60)) * 100)}%
-          </div>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      {canBump && (
-        <div className="p-6 pt-0">
-          <div className="flex gap-3">
-            {nextStatus && (
-              <Button
-                onClick={handleBump}
-                className={cn('card-action-button flex-1', {
-                  'btn-success': nextStatus === 'completed' || nextStatus === 'ready',
-                  'btn-primary': nextStatus === 'preparing'
-                })}
+      {/* Action buttons - larger like reference image */}
+      {actionButtons.length > 0 && (
+        <div className="flex gap-2">
+          {actionButtons.map((button, index) => 
+            button.show && (
+              <button
+                key={index}
+                onClick={button.onClick}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-colors',
+                  button.variant === 'primary' && 'bg-blue-500 hover:bg-blue-600 text-white',
+                  button.variant === 'secondary' && 'bg-blue-500 hover:bg-blue-600 text-white',
+                  button.variant === 'success' && 'bg-green-500 hover:bg-green-600 text-white'
+                )}
               >
-                <ChefHat className="h-5 w-5 mr-3" />
-                {nextStatus === 'preparing' && 'START COOKING'}
-                {nextStatus === 'ready' && 'MARK READY'}
-                {nextStatus === 'completed' && 'COMPLETE ORDER'}
-              </Button>
-            )}
-            
-            {order.status !== 'completed' && (
-              <Button
-                onClick={handleComplete}
-                className="btn-secondary px-4"
-              >
-                <CheckCircle className="h-6 w-6" />
-              </Button>
-            )}
-          </div>
+                <button.icon className="w-4 h-4" />
+                {button.label}
+              </button>
+            )
+          )}
         </div>
       )}
 
-      {/* Footer Info */}
-      <div className="px-6 py-4 bg-gray-800/50 border-t border-gray-700/50">
-        <div className="flex justify-between items-center text-sm">
-          <div className="flex items-center gap-2 text-gray-400">
-            <Clock className="h-4 w-4" />
-            <span>
-              Ordered: {new Date(order.order_time).toLocaleTimeString('en-US', { 
-                hour12: false, 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
-            </span>
-          </div>
-          <div className="text-gray-400">
-            Est. prep: <span className="font-bold text-white">{order.total_prep_time}m</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Urgency Overlay */}
-      {isOverdue && (
-        <div className="absolute top-4 right-4 z-10">
-          <div className="bg-red-500 rounded-full p-2 animate-bounce">
-            <AlertTriangle className="h-6 w-6 text-white" />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

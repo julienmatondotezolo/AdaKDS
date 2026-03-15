@@ -1,5 +1,9 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app';
-const RESTAURANT_ID = process.env.NEXT_PUBLIC_RESTAURANT_ID || 'demo-restaurant';
+const RESTAURANT_ID = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+
+if (!RESTAURANT_ID) {
+  throw new Error('NEXT_PUBLIC_RESTAURANT_ID environment variable is required but not set');
+}
 
 export class ApiError extends Error {
   constructor(
