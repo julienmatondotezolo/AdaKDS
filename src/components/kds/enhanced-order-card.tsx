@@ -181,7 +181,7 @@ export const EnhancedOrderCard: React.FC<EnhancedOrderCardProps> = ({
               <Button
                 onClick={handleBump}
                 variant={nextStatus === 'completed' ? 'success' : 'primary'}
-                size="large"
+                size="lg"
                 className="flex-1 py-3 text-lg font-semibold"
               >
                 <ChefHat className="h-5 w-5 mr-2" />
@@ -195,7 +195,7 @@ export const EnhancedOrderCard: React.FC<EnhancedOrderCardProps> = ({
               <Button
                 onClick={handleComplete}
                 variant="ghost"
-                size="large"
+                size="lg"
                 className="px-4"
               >
                 <CheckCircle className="h-5 w-5" />
