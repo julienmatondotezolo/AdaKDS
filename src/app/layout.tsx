@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   robots: 'noindex, nofollow', // Private kitchen system
   viewport: 'width=device-width, initial-scale=1, user-scalable=no',
   themeColor: '#4d6aff',
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({
