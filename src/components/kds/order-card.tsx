@@ -58,7 +58,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
           </div>
           {order.priority !== 'normal' && (
             <div className={cn('px-2 py-1 rounded text-xs font-medium', getPriorityColor(order.priority))}>
-              {order.priority.toUpperCase()}
+              {order.priority ? order.priority.toUpperCase() : 'NORMAL'}
             </div>
           )}
         </div>

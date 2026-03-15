@@ -128,7 +128,7 @@ export const ModernOrderCard: React.FC<ModernOrderCardProps> = ({
               statusColors.bg,
               statusColors.text
             )}>
-              {order.status.toUpperCase()}
+              {order.status ? order.status.toUpperCase() : 'UNKNOWN'}
             </div>
             {priorityIndicator && (
               <div className={cn(
@@ -137,7 +137,7 @@ export const ModernOrderCard: React.FC<ModernOrderCardProps> = ({
                 priorityIndicator.text,
                 priorityIndicator.border
               )}>
-                {order.priority.toUpperCase()}
+                {order.priority ? order.priority.toUpperCase() : 'NORMAL'}
               </div>
             )}
           </div>
@@ -207,7 +207,7 @@ export const ModernOrderCard: React.FC<ModernOrderCardProps> = ({
                 <div className="text-right ml-4">
                   <div className="text-sm text-gray-400 mb-1">Est. {item.estimated_time}m</div>
                   <div className="px-2 py-1 bg-gray-600/50 rounded text-xs text-gray-300 font-medium">
-                    {item.category.toUpperCase()}
+                    {item.category ? item.category.toUpperCase() : 'MAIN'}
                   </div>
                 </div>
               </div>
