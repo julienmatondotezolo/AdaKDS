@@ -83,7 +83,9 @@ export const StationColumn: React.FC<StationColumnProps> = ({
       <div className="order-grid">
         {visibleOrders.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <div className="text-4xl mb-2">🍽️</div>
+            <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-400 text-xs font-medium">EMPTY</span>
+            </div>
             <p className="text-sm">No orders for {station.name}</p>
           </div>
         ) : (

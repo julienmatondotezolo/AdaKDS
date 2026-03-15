@@ -185,7 +185,9 @@ export const KDSDisplay: React.FC = () => {
       <div className="kds-container">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
-            <div className="text-red-400 text-6xl mb-4">⚠️</div>
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-2xl font-bold">!</span>
+            </div>
             <h2 className="text-white text-xl mb-2">Connection Error</h2>
             <p className="text-gray-300 mb-4">{error}</p>
             <button 
@@ -213,7 +215,7 @@ export const KDSDisplay: React.FC = () => {
       {/* Connection Status */}
       {!isConnected && (
         <div className="bg-red-600 text-white px-4 py-2 text-center text-sm">
-          ⚠️ Disconnected from server - Orders may not update in real-time
+          WARNING: Disconnected from server - Orders may not update in real-time
         </div>
       )}
 
@@ -222,7 +224,9 @@ export const KDSDisplay: React.FC = () => {
         {activeStations.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-white">
-              <div className="text-6xl mb-4">🍽️</div>
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-700 rounded-full flex items-center justify-center">
+                <span className="text-gray-400 text-xs font-bold">SETUP</span>
+              </div>
               <h2 className="text-xl mb-2">No Active Stations</h2>
               <p className="text-gray-300">Configure stations to start displaying orders</p>
             </div>
@@ -272,7 +276,7 @@ export const KDSDisplay: React.FC = () => {
               'text-green-400': isConnected,
               'text-red-400': !isConnected
             })}>
-              {isConnected ? '🟢 LIVE' : '🔴 OFFLINE'}
+              {isConnected ? 'LIVE' : 'OFFLINE'}
             </span>
           </div>
         </div>

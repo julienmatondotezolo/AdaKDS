@@ -97,7 +97,7 @@ export const ProfessionalKDSHeader: React.FC<ProfessionalKDSHeaderProps> = ({
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-ada-500 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">🍳</span>
+                <span className="text-white font-bold text-sm">KDS</span>
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">AdaKDS</h1>

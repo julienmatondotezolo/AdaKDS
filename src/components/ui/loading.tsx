@@ -17,7 +17,7 @@ export const Loading: React.FC<LoadingProps> = ({
       <div className="relative mb-6">
         <div className="w-16 h-16 border-4 border-gray-300 border-t-ada-500 rounded-full animate-spin"></div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl">🍳</span>
+          <span className="text-xs font-bold text-ada-500">KDS</span>
         </div>
       </div>
       
