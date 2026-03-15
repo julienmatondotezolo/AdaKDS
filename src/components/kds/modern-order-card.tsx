@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Clock, User, AlertTriangle, CheckCircle, ChefHat, Timer, Utensils } from 'lucide-react';
+import { Clock, User, AlertTriangle, CheckCircle, ChefHat, Timer, Utensils, Flame, Zap } from 'lucide-react';
 import { cn, formatElapsedTime, formatTimeToReady, getOrderUrgency, canBumpOrder, getNextStatus } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { Order } from '@/types';
@@ -86,14 +86,14 @@ export const ModernOrderCard: React.FC<ModernOrderCardProps> = ({
           bg: 'bg-red-500/20',
           text: 'text-red-400',
           border: 'border-red-500/50',
-          icon: '🔥'
+          icon: Flame
         };
       case 'high':
         return {
           bg: 'bg-orange-500/20',
           text: 'text-orange-400',
           border: 'border-orange-500/50',
-          icon: 'Zap'
+          icon: Zap
         };
       case 'normal':
         return null;

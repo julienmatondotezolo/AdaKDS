@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ChefHat, Clock, AlertTriangle, TrendingUp } from 'lucide-react';
+import { ChefHat, Clock, AlertTriangle, TrendingUp, Flame, Snowflake, Wine, UtensilsCrossed, Cake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ModernOrderCard } from './modern-order-card';
 import type { Order, Station } from '@/types';
@@ -61,7 +61,7 @@ export const ModernStationColumn: React.FC<ModernStationColumnProps> = ({
           bg: 'bg-red-500/20',
           border: 'border-red-500/50',
           text: 'text-red-400',
-          icon: '🔥'
+          icon: Flame
         };
       case 'cold prep':
       case 'cold':
@@ -69,35 +69,35 @@ export const ModernStationColumn: React.FC<ModernStationColumnProps> = ({
           bg: 'bg-blue-500/20',
           border: 'border-blue-500/50',
           text: 'text-blue-400',
-          icon: '❄️'
+          icon: Snowflake
         };
       case 'grill':
         return {
           bg: 'bg-orange-500/20',
           border: 'border-orange-500/50',
           text: 'text-orange-400',
-          icon: '🔥'
+          icon: Flame
         };
       case 'bar':
         return {
           bg: 'bg-green-500/20',
           border: 'border-green-500/50',
           text: 'text-green-400',
-          icon: '🍹'
+          icon: Wine
         };
       case 'dessert':
         return {
           bg: 'bg-purple-500/20',
           border: 'border-purple-500/50',
           text: 'text-purple-400',
-          icon: '🍰'
+          icon: Cake
         };
       default:
         return {
           bg: 'bg-gray-500/20',
           border: 'border-gray-500/50',
           text: 'text-gray-400',
-          icon: 'UtensilsCrossed'
+          icon: UtensilsCrossed
         };
     }
   };

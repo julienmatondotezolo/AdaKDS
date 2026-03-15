@@ -127,16 +127,6 @@ export const SimpleKanbanDisplay: React.FC = () => {
     }
   };
 
-  const handlePrintOrder = async (orderId: string) => {
-    try {
-      console.log(`[PRINT] Order ${orderId}`);
-      // In a real system, this would send the order to a printer
-      window.print(); // Simple browser print for now
-    } catch (error) {
-      console.error('Failed to print order:', error);
-    }
-  };
-
   const handleCompleteOrder = async (orderId: string, completionType: 'served' | 'pickup' | 'delivery') => {
     try {
       console.log(`[COMPLETE] Order ${orderId} marked as ${completionType}`);
@@ -296,7 +286,6 @@ export const SimpleKanbanDisplay: React.FC = () => {
                     key={order.id}
                     order={order}
                     type="ready"
-                    onPrint={() => handlePrintOrder(order.id)}
                     onComplete={(type) => handleCompleteOrder(order.id, type)}
                   />
                 ))

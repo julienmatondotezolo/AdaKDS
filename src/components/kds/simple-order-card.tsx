@@ -13,7 +13,6 @@ interface SimpleOrderCardProps {
   onStart?: () => void;
   onPause?: () => void;
   onFinish?: () => void;
-  onPrint?: () => void;
   onComplete?: (type: 'served' | 'pickup' | 'delivery') => void;
 }
 
@@ -23,7 +22,6 @@ export const SimpleOrderCard: React.FC<SimpleOrderCardProps> = ({
   onStart,
   onPause,
   onFinish,
-  onPrint,
   onComplete,
 }) => {
   // Calculate elapsed time
@@ -141,24 +139,14 @@ export const SimpleOrderCard: React.FC<SimpleOrderCardProps> = ({
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2 border-t border-gray-200">
           {type === 'new' && (
-            <>
-              <Button
-                onClick={onStart}
-                variant="primary"
-                size="lg"
-                className="flex-1 text-lg font-semibold"
-              >
-                Start
-              </Button>
-              <Button
-                onClick={onFinish}
-                variant="secondary"
-                size="lg"
-                className="flex-1 text-lg font-semibold"
-              >
-                Finish
-              </Button>
-            </>
+            <Button
+              onClick={onStart}
+              variant="primary"
+              size="lg"
+              className="w-full text-lg font-semibold"
+            >
+              Start
+            </Button>
           )}
           
           {type === 'process' && (
@@ -217,16 +205,6 @@ export const SimpleOrderCard: React.FC<SimpleOrderCardProps> = ({
                   Delivery
                 </Button>
               )}
-              
-              {/* Print button as secondary action */}
-              <Button
-                onClick={onPrint}
-                variant="secondary"
-                size="lg"
-                className="w-full text-lg font-semibold"
-              >
-                Print Receipt
-              </Button>
             </div>
           )}
         </div>

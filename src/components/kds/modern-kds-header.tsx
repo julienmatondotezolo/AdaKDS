@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Wifi, WifiOff, Clock, TrendingUp, AlertTriangle, Users, Activity, Target } from 'lucide-react';
+import { Settings, Wifi, WifiOff, Clock, TrendingUp, AlertTriangle, Users, Activity, Target, Zap, CheckCircle, Siren } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { Station, DisplayConfig } from '@/types';
@@ -74,25 +74,25 @@ export const ModernKDSHeader: React.FC<ModernKDSHeaderProps> = ({
       level: 'EXTREME', 
       color: 'text-red-400 animate-pulse', 
       bg: 'bg-red-500/20 border-red-500/50',
-      icon: '🚨'
+      icon: Siren
     };
     if (totalActiveOrders >= 10) return { 
       level: 'HIGH RUSH', 
       color: 'text-orange-400', 
       bg: 'bg-orange-500/20 border-orange-500/50',
-      icon: 'Zap'
+      icon: Zap
     };
     if (totalActiveOrders >= 5) return { 
       level: 'MODERATE', 
       color: 'text-amber-400', 
       bg: 'bg-amber-500/20 border-amber-500/50',
-      icon: 'AlertTriangle'
+      icon: AlertTriangle
     };
     return { 
       level: 'NORMAL', 
       color: 'text-emerald-400', 
       bg: 'bg-emerald-500/20 border-emerald-500/50',
-      icon: 'CheckCircle'
+      icon: CheckCircle
     };
   };
 
