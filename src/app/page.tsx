@@ -1,7 +1,7 @@
 'use client';
 
-import { KDSDisplay } from '@/components/kds/kds-display';
+import { PreciseKDSDisplay } from '@/components/kds/precise-kds-display';
 
 export default function HomePage() {
-  return <KDSDisplay />;
+  return <PreciseKDSDisplay />;
 }

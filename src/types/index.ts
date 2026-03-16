@@ -13,6 +13,7 @@ export interface Order {
   elapsed_time: number;
   total_prep_time: number;
   rush_level: RushLevel;
+  special_instructions?: string;
   created_at: string;
   updated_at: string;
 }

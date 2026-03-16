@@ -1,64 +1,29 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { KDSHeader } from './kds-header';
-import { PixelPerfectOrderCard } from './pixel-perfect-order-card';
+import { PreciseKDSHeader } from './precise-kds-header';
+import { GlobalStatusCards } from './global-status-cards';
+import { PreciseOrderCard } from './precise-order-card';
 import { useKDSStore } from '@/store/kds-store';
 import { useSocket } from '@/hooks/use-socket';
 import { ordersApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { Bell, Flame, CheckCircle2, Utensils } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 
 interface KanbanColumn {
   id: string;
   title: string;
   status: 'NEW' | 'PROCESS' | 'READY' | 'SERVED';
-  icon: React.ReactNode;
-  color: string;
-  bgColor: string;
-  borderColor: string;
 }
 
 const KANBAN_COLUMNS: KanbanColumn[] = [
-  {
-    id: 'new',
-    title: 'NEW',
-    status: 'NEW',
-    icon: <Bell className="w-5 h-5" />,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200'
-  },
-  {
-    id: 'process', 
-    title: 'PROCESS',
-    status: 'PROCESS',
-    icon: <Flame className="w-5 h-5" />,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200'
-  },
-  {
-    id: 'ready',
-    title: 'READY', 
-    status: 'READY',
-    icon: <CheckCircle2 className="w-5 h-5" />,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200'
-  },
-  {
-    id: 'served',
-    title: 'SERVED',
-    status: 'SERVED', 
-    icon: <Utensils className="w-5 h-5" />,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
-    borderColor: 'border-gray-200'
-  }
+  { id: 'new', title: 'New', status: 'NEW' },
+  { id: 'process', title: 'Process', status: 'PROCESS' },
+  { id: 'ready', title: 'Ready', status: 'READY' },
+  { id: 'served', title: 'Served', status: 'SERVED' },
 ];
 
-export const KDSDisplay: React.FC = () => {
+export const PreciseKDSDisplay: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -153,7 +118,7 @@ export const KDSDisplay: React.FC = () => {
 
   const handlePauseOrder = async (orderId: string) => {
     try {
-      // Pause means stay in preparing status but with pause flag
+      // Pause functionality - could update a pause flag
       await ordersApi.updateStatus(orderId, 'preparing');
     } catch (error) {
       console.error('Failed to pause order:', error);
@@ -174,6 +139,11 @@ export const KDSDisplay: React.FC = () => {
     } catch (error) {
       console.error('Failed to serve order:', error);
     }
+  };
+
+  const handleUndoLastAction = () => {
+    // TODO: Implement undo functionality
+    console.log('Undo last action');
   };
 
   // Group orders by status with proper mapping
@@ -209,9 +179,9 @@ export const KDSDisplay: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <div className="w-16 h-16 border-4 border-[#3B82F6] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Loading Kitchen Display</h2>
           <p className="text-gray-600 text-lg">Fetching orders...</p>
         </div>
@@ -221,16 +191,16 @@ export const KDSDisplay: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-8 h-8 text-white" />
+            <RotateCcw className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Connection Error</h2>
           <p className="text-gray-600 text-lg mb-6">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="px-6 py-3 bg-[#3B82F6] text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             Retry
           </button>
@@ -240,9 +210,9 @@ export const KDSDisplay: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <KDSHeader isConnected={isConnected} />
+    <div className="min-h-screen bg-[#F8F9FB]">
+      {/* Precise Header */}
+      <PreciseKDSHeader isConnected={isConnected} />
 
       {/* Connection Status Warning */}
       {!isConnected && (
@@ -251,64 +221,67 @@ export const KDSDisplay: React.FC = () => {
         </div>
       )}
 
-      {/* Main 4-Column Layout with counts at top */}
-      <div className="p-6">
+      {/* Global Status Cards */}
+      <GlobalStatusCards
+        newCount={getStatusCount('NEW')}
+        processCount={getStatusCount('PROCESS')}
+        readyCount={getStatusCount('READY')}
+        servedCount={getStatusCount('SERVED')}
+      />
+
+      {/* Four Column Kanban Layout */}
+      <div className="px-6 pb-20">
         <div className="grid grid-cols-4 gap-6">
           {KANBAN_COLUMNS.map((column) => (
             <div key={column.id} className="flex flex-col">
-              {/* Column Header with Count */}
-              <div className={cn(
-                "flex items-center justify-between p-4 rounded-t-lg border-b",
-                column.bgColor,
-                column.borderColor,
-                "border bg-white"
-              )}>
-                <div className="flex items-center gap-3">
-                  <div className={cn("p-2 rounded-lg", column.bgColor)}>
-                    <span className={column.color}>{column.icon}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900">{column.title}</h3>
-                </div>
-                <div className="bg-gray-800 text-white px-3 py-1 rounded-full text-xl font-bold min-w-[48px] text-center">
-                  {getStatusCount(column.status)}
-                </div>
+              {/* Column Header */}
+              <div className="mb-4">
+                <h2 className="text-lg font-medium text-gray-600 flex items-center gap-2">
+                  {column.title}
+                  <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm font-bold">
+                    {getStatusCount(column.status)}
+                  </span>
+                </h2>
               </div>
 
-              {/* Column Content Area */}
-              <div className="bg-white rounded-b-lg border-l border-r border-b border-gray-200 min-h-[600px] max-h-[700px] overflow-y-auto">
-                <div className="p-3 space-y-3">
-                  {ordersByStatus[column.status]?.length === 0 ? (
-                    <div className="text-center text-gray-400 mt-20">
-                      <div className={cn(
-                        "w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center",
-                        column.bgColor
-                      )}>
-                        <span className={column.color}>{column.icon}</span>
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        {column.status === 'NEW' ? 'No new orders' : 
-                         column.status === 'PROCESS' ? 'No orders in process' :
-                         column.status === 'READY' ? 'No orders ready' : 'No orders served'}
-                      </p>
-                    </div>
-                  ) : (
-                    ordersByStatus[column.status]?.map((order) => (
-                      <PixelPerfectOrderCard
-                        key={order.id}
-                        order={order}
-                        status={column.status}
-                        onStartOrder={handleStartOrder}
-                        onPauseOrder={handlePauseOrder}
-                        onFinishOrder={handleFinishOrder}
-                        onServeOrder={handleServeOrder}
-                      />
-                    ))
-                  )}
-                </div>
+              {/* Column Content */}
+              <div className="space-y-4 min-h-[600px]">
+                {ordersByStatus[column.status]?.length === 0 ? (
+                  <div className="text-center text-gray-400 mt-20">
+                    <p className="text-sm text-gray-500">
+                      {column.status === 'NEW' ? 'No new orders' : 
+                       column.status === 'PROCESS' ? 'No orders in process' :
+                       column.status === 'READY' ? 'No orders ready' : 'No orders served'}
+                    </p>
+                  </div>
+                ) : (
+                  ordersByStatus[column.status]?.map((order) => (
+                    <PreciseOrderCard
+                      key={order.id}
+                      order={order}
+                      status={column.status}
+                      onStartOrder={handleStartOrder}
+                      onPauseOrder={handlePauseOrder}
+                      onFinishOrder={handleFinishOrder}
+                      onServeOrder={handleServeOrder}
+                    />
+                  ))
+                )}
               </div>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Footer - Undo Last Action Button */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2">
+        <button
+          onClick={handleUndoLastAction}
+          className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-gray-50 transition-colors"
+        >
+          <RotateCcw className="w-5 h-5 text-gray-500" />
+          Undo Last Action
+        </button>
       </div>
     </div>
   );

@@ -1,233 +1,249 @@
 'use client';
 
 import React from 'react';
-import { Clock, User, AlertTriangle, CheckCircle, ChefHat, Timer, Utensils } from 'lucide-react';
-import { Card, Badge } from 'ada-design-system';
-import { cn, formatElapsedTime, formatTimeToReady, getOrderUrgency, canBumpOrder, getNextStatus } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { 
+  Play, 
+  Pause, 
+  Check, 
+  Clock, 
+  Bell, 
+  CheckCircle2,
+  Utensils
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Order } from '@/types';
 
 interface EnhancedOrderCardProps {
   order: Order;
-  onBump?: (orderId: string) => void;
-  onComplete?: (orderId: string) => void;
-  compact?: boolean;
+  status: 'NEW' | 'PROCESS' | 'READY' | 'SERVED';
+  onStartOrder?: (orderId: string) => void;
+  onPauseOrder?: (orderId: string) => void;
+  onFinishOrder?: (orderId: string) => void;
+  onServeOrder?: (orderId: string) => void;
 }
 
 export const EnhancedOrderCard: React.FC<EnhancedOrderCardProps> = ({ 
   order, 
-  onBump, 
-  onComplete,
-  compact = false 
+  status,
+  onStartOrder,
+  onPauseOrder, 
+  onFinishOrder,
+  onServeOrder
 }) => {
-  const urgency = getOrderUrgency(order);
-  const canBump = canBumpOrder(order.status);
-  const nextStatus = getNextStatus(order.status);
-  const isOverdue = urgency === 'critical';
+  // Calculate elapsed time in minutes
+  const getElapsedMinutes = () => {
+    if (!order.created_at) return 0;
+    const now = new Date();
+    const created = new Date(order.created_at);
+    return Math.floor((now.getTime() - created.getTime()) / (1000 * 60));
+  };
 
-  const handleBump = () => {
-    if (onBump && canBump) {
-      onBump(order.id);
+  // Get order time formatted for display
+  const getOrderTime = () => {
+    if (!order.created_at) return '--:--';
+    const date = new Date(order.created_at);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  const elapsedMinutes = getElapsedMinutes();
+  const orderTime = getOrderTime();
+
+  // Get display order number
+  const getOrderNumber = () => {
+    return order.order_number || order.id?.slice(-6).toUpperCase() || 'NO_ID';
+  };
+
+  // Get customer/table info
+  const getTableInfo = () => {
+    if (order.customer_type === 'dine_in') {
+      return `Table ${order.customer_name || 'Unknown'}`;
+    } else if (order.customer_type === 'takeaway') {
+      return `Takeaway`;
+    } else if (order.customer_type === 'delivery') {
+      return `Delivery`;
+    }
+    return `Table ${order.customer_name || 'Unknown'}`;
+  };
+
+  // Get status badge
+  const getStatusBadge = () => {
+    switch (status) {
+      case 'NEW':
+        return { 
+          icon: <Bell className="w-3 h-3" />, 
+          color: 'bg-blue-100 text-blue-700 border-blue-200',
+          text: 'New Order'
+        };
+      case 'PROCESS':
+        return { 
+          icon: <Clock className="w-3 h-3" />, 
+          color: 'bg-orange-100 text-orange-700 border-orange-200',
+          text: 'In Progress'
+        };
+      case 'READY':
+        return { 
+          icon: <CheckCircle2 className="w-3 h-3" />, 
+          color: 'bg-green-100 text-green-700 border-green-200',
+          text: 'Ready'
+        };
+      case 'SERVED':
+        return { 
+          icon: <Check className="w-3 h-3" />, 
+          color: 'bg-gray-100 text-gray-700 border-gray-200',
+          text: 'Served'
+        };
+      default:
+        return { 
+          icon: <Bell className="w-3 h-3" />, 
+          color: 'bg-gray-100 text-gray-700 border-gray-200',
+          text: 'Unknown'
+        };
     }
   };
 
-  const handleComplete = () => {
-    if (onComplete) {
-      onComplete(order.id);
-    }
-  };
+  // Action handlers
+  const handleStartOrder = () => onStartOrder?.(order.id);
+  const handlePauseOrder = () => onPauseOrder?.(order.id);
+  const handleFinishOrder = () => onFinishOrder?.(order.id);
+  const handleServeOrder = () => onServeOrder?.(order.id);
 
-  // Professional KDS color scheme
-  const statusColors = {
-    new: 'bg-emerald-500',
-    preparing: 'bg-amber-500', 
-    ready: 'bg-red-500',
-    completed: 'bg-gray-400'
-  };
-
-  const priorityBorders = {
-    low: 'border-l-gray-300',
-    normal: 'border-l-blue-400',
-    high: 'border-l-orange-400',
-    urgent: 'border-l-red-500 border-l-4 shadow-lg shadow-red-200'
-  };
+  const statusBadge = getStatusBadge();
 
   return (
-    <Card className={cn(
-      'relative overflow-hidden transition-all duration-300 hover:shadow-lg border-l-8',
-      priorityBorders[order.priority],
-      {
-        'animate-pulse border-red-500 shadow-lg shadow-red-200': isOverdue,
-        'border-amber-400 shadow-md': urgency === 'warning',
-      }
-    )}>
-      {/* Header with Order Number and Status */}
-      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="text-2xl font-bold text-gray-900">
-              {order.order_number}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200">
+      {/* Card Header */}
+      <div className="p-4 pb-3">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg leading-tight">
+              {getTableInfo()}
+            </h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-gray-500">#{getOrderNumber()}</span>
+              <span className="text-xs text-gray-400">•</span>
+              <span className="text-xs text-gray-400">{orderTime}</span>
             </div>
-            <Badge 
-              variant={order.status === 'ready' ? 'destructive' : order.status === 'new' ? 'success' : 'default'}
-              className="uppercase tracking-wide font-semibold"
-            >
-              {order.status}
-            </Badge>
-            {order.priority !== 'normal' && (
-              <Badge 
-                variant={order.priority === 'urgent' ? 'destructive' : 'warning'}
-                className="uppercase text-xs"
-              >
-                {order.priority}
-              </Badge>
-            )}
           </div>
           
-          {/* Timer Display */}
-          <div className={cn('flex items-center gap-2 font-mono text-lg font-bold', {
-            'text-green-600': urgency === 'normal',
-            'text-amber-600': urgency === 'warning', 
-            'text-red-600 animate-pulse': urgency === 'critical'
-          })}>
-            <Timer className="h-5 w-5" />
-            {formatElapsedTime(order.elapsed_time)}
-          </div>
-        </div>
-      </div>
-
-      {/* Customer & Order Type */}
-      <div className="px-4 py-2 bg-white border-b border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-gray-500" />
-            <span className="font-semibold text-gray-900">{order.customer_name}</span>
-            {order.customer_type === 'takeaway' && (
-              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
-                TAKEAWAY
-              </Badge>
-            )}
-            {order.customer_type === 'delivery' && (
-              <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
-                DELIVERY
-              </Badge>
-            )}
-          </div>
-          
-          <div className="text-sm text-gray-500">
-            Ready in: <span className={cn('font-semibold', {
-              'text-green-600': urgency === 'normal',
-              'text-amber-600': urgency === 'warning',
-              'text-red-600': urgency === 'critical'
-            })}>
-              {formatTimeToReady(order.estimated_ready_time, order.order_time)}
+          {/* Timer Circle */}
+          <div className={cn(
+            "flex items-center justify-center w-12 h-12 rounded-full border-2 bg-gray-50",
+            status === 'NEW' && "border-blue-200 bg-blue-50",
+            status === 'PROCESS' && "border-orange-200 bg-orange-50",
+            status === 'READY' && "border-green-200 bg-green-50",
+            status === 'SERVED' && "border-gray-200 bg-gray-50"
+          )}>
+            <span className={cn(
+              "text-xs font-bold",
+              status === 'NEW' && "text-blue-700",
+              status === 'PROCESS' && "text-orange-700",
+              status === 'READY' && "text-green-700",
+              status === 'SERVED' && "text-gray-700"
+            )}>
+              {elapsedMinutes}m
             </span>
           </div>
+        </div>
+
+        {/* Status Badge */}
+        <div className={cn(
+          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium mb-3",
+          statusBadge.color
+        )}>
+          {statusBadge.icon}
+          {statusBadge.text}
         </div>
       </div>
 
       {/* Order Items */}
-      <div className="px-4 py-4">
-        <div className="space-y-3">
-          {order.items.map((item, index) => (
-            <div key={item.id || index} className="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Utensils className="h-4 w-4 text-gray-400" />
-                    <span className="font-semibold text-gray-900 text-lg">
-                      {item.quantity}x {item.name}
-                    </span>
-                  </div>
-                  {item.special_requests && (
-                    <div className="ml-6 text-sm bg-amber-50 text-amber-800 p-2 rounded border-l-4 border-amber-400">
-                      <strong>Special:</strong> {item.special_requests}
-                    </div>
-                  )}
-                </div>
-                <div className="text-right ml-3">
-                  <div className="text-sm text-gray-500">Est. {item.estimated_time}m</div>
-                  <Badge variant="outline" className="text-xs mt-1">
-                    {item.category}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Progress Bar */}
       <div className="px-4 pb-3">
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className={cn('h-2 rounded-full transition-all duration-500', {
-              'bg-green-500': urgency === 'normal',
-              'bg-amber-500': urgency === 'warning',
-              'bg-red-500 animate-pulse': urgency === 'critical'
-            })}
-            style={{ 
-              width: `${Math.min(Math.max((order.elapsed_time / (order.total_prep_time * 60)) * 100, 5), 100)}%` 
-            }}
-          />
+        <div className="space-y-2">
+          {order.items?.map((item, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div className="flex items-center gap-2 flex-1">
+                <Utensils className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                <span className="text-sm text-gray-900 font-medium">
+                  {item.quantity}x {item.name}
+                </span>
+              </div>
+              {item.estimated_time && (
+                <span className="text-xs text-gray-500 ml-2">
+                  {item.estimated_time}min
+                </span>
+              )}
+            </div>
+          )) || (
+            <div className="text-sm text-gray-500 italic flex items-center gap-2">
+              <Utensils className="w-3.5 h-3.5" />
+              No items listed
+            </div>
+          )}
         </div>
+
+        {/* Special Requests */}
+        {order.items?.some(item => item.special_requests) && (
+          <div className="mt-3 pt-2 border-t border-gray-100">
+            <div className="text-xs text-gray-600">
+              <span className="font-medium">Special requests:</span>
+              {order.items.filter(item => item.special_requests).map((item, index) => (
+                <div key={index} className="mt-1 italic">
+                  • {item.special_requests}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}
-      {canBump && (
-        <div className="px-4 pb-4">
+      <div className="px-4 pb-4">
+        {status === 'NEW' && (
+          <button
+            onClick={handleStartOrder}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-colors"
+          >
+            <Play className="w-4 h-4" />
+            Start
+          </button>
+        )}
+
+        {status === 'PROCESS' && (
           <div className="flex gap-2">
-            {nextStatus && (
-              <Button
-                onClick={handleBump}
-                variant={nextStatus === 'completed' ? 'success' : 'primary'}
-                size="lg"
-                className="flex-1 py-3 text-lg font-semibold"
-              >
-                <ChefHat className="h-5 w-5 mr-2" />
-                {nextStatus === 'preparing' && 'Start Cooking'}
-                {nextStatus === 'ready' && 'Mark Ready'}
-                {nextStatus === 'completed' && 'Complete'}
-              </Button>
-            )}
-            
-            {order.status !== 'completed' && (
-              <Button
-                onClick={handleComplete}
-                variant="ghost"
-                size="lg"
-                className="px-4"
-              >
-                <CheckCircle className="h-5 w-5" />
-              </Button>
-            )}
+            <button
+              onClick={handlePauseOrder}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-colors"
+            >
+              <Pause className="w-4 h-4" />
+              Pause
+            </button>
+            <button
+              onClick={handleFinishOrder}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium text-sm transition-colors"
+            >
+              <Check className="w-4 h-4" />
+              Finish
+            </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Footer with timestamps */}
-      <div className="px-4 py-2 bg-gray-50 text-xs text-gray-600 border-t border-gray-200">
-        <div className="flex justify-between items-center">
-          <span>
-            Ordered: {new Date(order.order_time).toLocaleTimeString('en-US', { 
-              hour12: false, 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            Est. {order.total_prep_time}m prep
-          </span>
-        </div>
+        {status === 'READY' && (
+          <button
+            onClick={handleServeOrder}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium text-sm transition-colors"
+          >
+            <Check className="w-4 h-4" />
+            Serve Order
+          </button>
+        )}
+
+        {status === 'SERVED' && (
+          <div className="text-center text-sm text-gray-500 py-2">
+            Order completed
+          </div>
+        )}
       </div>
-
-      {/* Urgency Indicator */}
-      {isOverdue && (
-        <div className="absolute top-2 right-2">
-          <AlertTriangle className="h-6 w-6 text-red-500 animate-bounce" />
-        </div>
-      )}
-    </Card>
+    </div>
   );
 };

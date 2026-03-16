@@ -4,13 +4,14 @@
   "description": "AdaKDS - Kitchen Display System Frontend",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 5006",
+    "dev": "next dev -p 3010",
     "build": "next build",
     "start": "next start -p 8082",
     "lint": "next lint",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.99.2",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
