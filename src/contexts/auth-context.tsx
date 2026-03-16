@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setToken(storedToken);
           } else {
             // Token invalid, clear everything
+            authService.logout();
             setUser(null);
             setToken(null);
           }
@@ -51,15 +52,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ─── Login Function ────────────────────────────────────────────────────────
-  const login = async (credentials: LoginCredentials): Promise<void> => {
+  const login = async (credentials?: LoginCredentials): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
 
-      const { user: loggedInUser, token: receivedToken } = await authService.login(credentials);
-      
-      setUser(loggedInUser);
-      setToken(receivedToken);
+      // For OAuth flow, this will redirect to Ada Auth
+      await authService.login(credentials);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);

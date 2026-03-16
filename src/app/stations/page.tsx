@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit3, Trash2, Settings, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProtectedRoute } from '@/contexts/auth-context';
@@ -55,12 +55,7 @@ function StationsPageContent() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5009';
   const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID || 'losteria';
 
-  // Load stations on component mount
-  useEffect(() => {
-    loadStations();
-  }, []);
-
-  const loadStations = async () => {
+  const loadStations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -76,7 +71,12 @@ function StationsPageContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL, restaurantId]);
+
+  // Load stations on component mount
+  useEffect(() => {
+    loadStations();
+  }, [loadStations]);
 
   const handleCreateStation = () => {
     setEditingStation(null);

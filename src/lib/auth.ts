@@ -18,7 +18,7 @@ export interface LoginCredentials {
 export interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (credentials?: LoginCredentials) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -29,7 +29,9 @@ export interface AuthContextType {
 }
 
 // ─── Authentication API ────────────────────────────────────────────────────
-const ADAAUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'https://auth.adasystems.app';
+const ADAAUTH_BASE_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'https://auth.adasystems.app';
+const CLIENT_ID = process.env.NEXT_PUBLIC_ADAAUTH_CLIENT_ID || 'adakds';
+const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI || `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`;
 
 class AuthService {
   private token: string | null = null;
@@ -50,45 +52,99 @@ class AuthService {
     }
   }
 
-  async login(credentials: LoginCredentials): Promise<{ user: User; token: string }> {
+  // OAuth-style redirect login
+  async login(credentials?: LoginCredentials): Promise<{ user: User; token: string }> {
+    if (typeof window === 'undefined') {
+      throw new Error('Login is only available in browser environment');
+    }
+
+    // For OAuth flow, redirect to Ada Auth
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      scope: 'read:user read:restaurants',
+      state: this.generateState()
+    });
+
+    // Store current location for redirect after auth
+    const currentPath = window.location.pathname + window.location.search;
+    localStorage.setItem('adakds_redirect_after_auth', currentPath);
+    localStorage.setItem('adakds_auth_state', params.get('state')!);
+
+    // Redirect to Ada Auth
+    window.location.href = `${ADAAUTH_BASE_URL}/oauth/authorize?${params.toString()}`;
+    
+    // This promise never resolves since we're redirecting
+    return new Promise(() => {});
+  }
+
+  // Handle OAuth callback
+  async handleCallback(code: string, state: string): Promise<{ user: User; token: string }> {
+    // Verify state parameter
+    const storedState = localStorage.getItem('adakds_auth_state');
+    if (state !== storedState) {
+      throw new Error('Invalid state parameter');
+    }
+    localStorage.removeItem('adakds_auth_state');
+
     try {
-      const response = await fetch(`${ADAAUTH_API_URL}/api/v2/auth/login`, {
+      // Exchange code for token
+      const response = await fetch(`${ADAAUTH_BASE_URL}/api/v2/auth/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(credentials)
+        body: JSON.stringify({
+          grant_type: 'authorization_code',
+          client_id: CLIENT_ID,
+          code: code,
+          redirect_uri: REDIRECT_URI
+        })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Login failed: ${response.status}`);
+        throw new Error(errorData.message || `Token exchange failed: ${response.status}`);
       }
 
       const data = await response.json();
       
-      if (!data.token || !data.user) {
+      if (!data.access_token) {
         throw new Error('Invalid response from authentication server');
       }
 
+      // Get user info with the token
+      const userResponse = await fetch(`${ADAAUTH_BASE_URL}/api/v2/user/me`, {
+        headers: {
+          'Authorization': `Bearer ${data.access_token}`
+        }
+      });
+
+      if (!userResponse.ok) {
+        throw new Error('Failed to get user information');
+      }
+
+      const userData = await userResponse.json();
+
       const user: User = {
-        id: data.user.id,
-        email: data.user.email,
-        role: data.user.role || 'staff',
-        restaurantIds: data.user.restaurantIds || [],
-        permissions: data.user.permissions || [],
-        name: data.user.name
+        id: userData.id,
+        email: userData.email,
+        role: userData.role || 'staff',
+        restaurantIds: userData.restaurant_ids || [],
+        permissions: userData.permissions || [],
+        name: userData.name || userData.full_name
       };
 
       // Store in memory and localStorage
-      this.token = data.token;
+      this.token = data.access_token;
       this.user = user;
       this.saveToStorage();
 
-      return { user, token: data.token };
+      return { user, token: data.access_token };
     } catch (error) {
-      console.error('[AUTH] Login failed:', error);
-      throw error instanceof Error ? error : new Error('Login failed');
+      console.error('[AUTH] OAuth callback failed:', error);
+      throw error instanceof Error ? error : new Error('Authentication failed');
     }
   }
 
@@ -98,13 +154,10 @@ class AuthService {
     }
 
     try {
-      const response = await fetch(`${ADAAUTH_API_URL}/api/v2/auth/validate`, {
-        method: 'POST',
+      const response = await fetch(`${ADAAUTH_BASE_URL}/api/v2/user/me`, {
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.token}`
-        },
-        body: JSON.stringify({ token: this.token })
+        }
       });
 
       if (!response.ok) {
@@ -112,20 +165,15 @@ class AuthService {
         return null;
       }
 
-      const data = await response.json();
-      
-      if (!data.valid || !data.user) {
-        this.clearAuth();
-        return null;
-      }
+      const userData = await response.json();
 
       const user: User = {
-        id: data.user.id,
-        email: data.user.email,
-        role: data.user.role || 'staff',
-        restaurantIds: data.user.restaurantIds || [],
-        permissions: data.user.permissions || [],
-        name: data.user.name
+        id: userData.id,
+        email: userData.email,
+        role: userData.role || 'staff',
+        restaurantIds: userData.restaurant_ids || [],
+        permissions: userData.permissions || [],
+        name: userData.name || userData.full_name
       };
 
       this.user = user;
@@ -141,6 +189,12 @@ class AuthService {
 
   logout(): void {
     this.clearAuth();
+    
+    // Optionally redirect to Ada Auth logout
+    if (typeof window !== 'undefined') {
+      const logoutUrl = `${ADAAUTH_BASE_URL}/logout?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}`;
+      window.location.href = logoutUrl;
+    }
   }
 
   getToken(): string | null {
@@ -177,6 +231,11 @@ class AuthService {
     return this.user.restaurantIds.includes(restaurantId);
   }
 
+  private generateState(): string {
+    return Math.random().toString(36).substring(2, 15) + 
+           Math.random().toString(36).substring(2, 15);
+  }
+
   private saveToStorage(): void {
     if (typeof window === 'undefined') return;
     
@@ -194,6 +253,8 @@ class AuthService {
     
     localStorage.removeItem('adakds_token');
     localStorage.removeItem('adakds_user');
+    localStorage.removeItem('adakds_redirect_after_auth');
+    localStorage.removeItem('adakds_auth_state');
   }
 
   private clearAuth(): void {

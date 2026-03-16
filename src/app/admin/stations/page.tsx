@@ -109,11 +109,6 @@ export default function AdminStationsPage() {
     active_status: true
   });
 
-  // Load stations on component mount
-  useEffect(() => {
-    loadStations();
-  }, [showDeleted]);
-
   const loadStations = useCallback(async () => {
     try {
       setLoading(true);
@@ -147,6 +142,11 @@ export default function AdminStationsPage() {
       setLoading(false);
     }
   }, [user.restaurant_id, showDeleted]);
+
+  // Load stations on component mount
+  useEffect(() => {
+    loadStations();
+  }, [showDeleted, loadStations]);
 
   const handleCreateStation = () => {
     setEditingStation(null);

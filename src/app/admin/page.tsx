@@ -54,7 +54,7 @@ export default function AdminDashboard() {
           Admin Dashboard
         </h1>
         <p className="text-gray-600 mt-2">
-          Welcome back, {user?.name}. Manage your restaurant's kitchen display system.
+          Welcome back, {user?.name}. Manage your restaurant&apos;s kitchen display system.
         </p>
       </div>
 
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
           isAdmin ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
         }`}>
-          {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Access
+          {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Unknown'} Access
         </span>
       </div>
 
