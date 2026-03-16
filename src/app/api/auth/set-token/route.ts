@@ -14,11 +14,11 @@ export async function POST(request: NextRequest) {
 
     // Validate the token with AdaAuth before storing
     try {
+      console.log('[AUTH] Validating token before setting cookie...');
       const validateResponse = await fetch('https://auth.adasystems.app/auth/validate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
           'X-Service-Slug': 'ada-kds'
         },
         body: JSON.stringify({
@@ -27,14 +27,31 @@ export async function POST(request: NextRequest) {
         }),
       });
 
-      const validateData = await validateResponse.json();
+      console.log(`[AUTH] AdaAuth validation response: ${validateResponse.status}`);
+      
+      const responseText = await validateResponse.text();
+      console.log(`[AUTH] AdaAuth response body: ${responseText}`);
 
-      if (!validateData.valid) {
+      let validateData;
+      try {
+        validateData = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('[AUTH] Failed to parse validation response:', parseError);
+        return NextResponse.json(
+          { error: 'Invalid auth service response' },
+          { status: 500 }
+        );
+      }
+
+      if (!validateResponse.ok || !validateData.valid) {
+        console.error('[AUTH] Token validation failed:', validateData);
         return NextResponse.json(
           { error: 'Invalid token' },
           { status: 401 }
         );
       }
+      
+      console.log('[AUTH] Token validation successful');
     } catch (validateError) {
       console.error('[AUTH] Token validation failed:', validateError);
       return NextResponse.json(

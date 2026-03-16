@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
         'X-Service-Slug': 'ada-kds'
       },
       body: JSON.stringify({
@@ -26,6 +25,22 @@ export async function GET(request: NextRequest) {
         app_slug: 'ada-kds'
       }),
     });
+
+    console.log(`[AUTH] Validating token with AdaAuth: ${response.status}`);
+    
+    const responseText = await response.text();
+    console.log(`[AUTH] AdaAuth response: ${responseText}`);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('[AUTH] Failed to parse AdaAuth response:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid response from auth service' },
+        { status: 500 }
+      );
+    }
 
     if (!response.ok) {
       // Clear invalid cookie
