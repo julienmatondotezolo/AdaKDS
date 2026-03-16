@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
           'Authorization': `Bearer ${token}`,
           'X-Service-Slug': 'ada-kds'
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           access_token: token,
-          service: 'ada-kds'
+          app_slug: 'ada-kds'
         }),
       });
 

@@ -51,6 +51,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip navigation requests (let browser handle redirects to auth, etc.)
+  if (request.mode === 'navigate') {
+    return;
+  }
+
   // API requests - network first
   if (url.pathname.startsWith('/api/') || url.hostname !== self.location.hostname) {
     event.respondWith(

@@ -40,9 +40,9 @@ export async function middleware(request: NextRequest) {
         'Content-Type': 'application/json',
         'X-Service-Slug': 'ada-kds'
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         access_token: token,
-        service: 'ada-kds'
+        app_slug: 'ada-kds'
       }),
     });
     
