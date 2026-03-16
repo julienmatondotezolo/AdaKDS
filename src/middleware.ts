@@ -4,9 +4,26 @@ import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('ada_access_token')?.value;
 
+  // Use production URL for callback in production, fallback to request origin for development
+  const getCallbackUrl = () => {
+    const prodUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
+    if (prodUrl) {
+      const baseUrl = prodUrl.startsWith('http') ? prodUrl : `https://${prodUrl}`;
+      return `${baseUrl}/auth/callback`;
+    }
+    
+    // Development fallback or when running on production domain
+    const origin = request.nextUrl.origin;
+    if (origin.includes('kds.adasystems.app')) {
+      return 'https://kds.adasystems.app/auth/callback';
+    }
+    
+    return `${origin}/auth/callback`;
+  };
+
   // No token → redirect to AdaAuth login
   if (!token) {
-    const callback = `${request.nextUrl.origin}/auth/callback`;
+    const callback = getCallbackUrl();
     return NextResponse.redirect(
       `https://auth.adasystems.app/?redirect=${encodeURIComponent(callback)}`
     );
@@ -16,15 +33,21 @@ export async function middleware(request: NextRequest) {
   try {
     const res = await fetch('https://auth.adasystems.app/auth/validate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ access_token: token }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Service-Slug': 'ada-kds'
+      },
+      body: JSON.stringify({ 
+        access_token: token,
+        service: 'ada-kds'
+      }),
     });
     
     const data = await res.json();
     
     if (!data.valid) {
       // Expired/invalid → clear cookie + redirect to login
-      const callback = `${request.nextUrl.origin}/auth/callback`;
+      const callback = getCallbackUrl();
       const response = NextResponse.redirect(
         `https://auth.adasystems.app/?redirect=${encodeURIComponent(callback)}`
       );

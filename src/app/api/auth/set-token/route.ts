@@ -18,9 +18,13 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Service-Slug': 'ada-kds'
         },
-        body: JSON.stringify({ access_token: token }),
+        body: JSON.stringify({ 
+          access_token: token,
+          service: 'ada-kds'
+        }),
       });
 
       const validateData = await validateResponse.json();

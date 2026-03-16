@@ -5,7 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import { useKDSStore } from '@/store/kds-store';
 import type { SocketEvents } from '@/types';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:5005';
+const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'https://api-kds.adasystems.app';
 const RESTAURANT_ID = process.env.NEXT_PUBLIC_RESTAURANT_ID || 'losteria';
 
 export const useSocket = () => {

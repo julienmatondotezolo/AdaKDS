@@ -52,9 +52,9 @@ export default function MenuAssignmentsPage() {
       
       // Load menu items, categories, and stations in parallel
       const [itemsResponse, categoriesResponse, stationsResponse] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5009'}/api/v1/restaurants/${restaurantId}/menu/items`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5009'}/api/v1/restaurants/${restaurantId}/menu/categories`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5009'}/api/v1/stations?restaurant_id=${restaurantId}`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app'}/api/v1/restaurants/${restaurantId}/menu/items`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app'}/api/v1/restaurants/${restaurantId}/menu/categories`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app'}/api/v1/stations?restaurant_id=${restaurantId}`)
       ]);
 
       if (!itemsResponse.ok || !categoriesResponse.ok || !stationsResponse.ok) {
@@ -97,7 +97,7 @@ export default function MenuAssignmentsPage() {
       // If moving to a station
       if (destStationId) {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5009'}/api/v1/restaurants/${restaurantId}/stations/${destStationId}/assign-items`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app'}/api/v1/restaurants/${restaurantId}/stations/${destStationId}/assign-items`,
           {
             method: 'POST',
             headers: {
@@ -119,7 +119,7 @@ export default function MenuAssignmentsPage() {
       // If removing from station
       if (sourceStationId && !destStationId) {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5009'}/api/v1/restaurants/${restaurantId}/stations/${sourceStationId}/items/${menuItemId}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app'}/api/v1/restaurants/${restaurantId}/stations/${sourceStationId}/items/${menuItemId}`,
           {
             method: 'DELETE',
             headers: {

@@ -18,9 +18,13 @@ export async function GET(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'X-Service-Slug': 'ada-kds'
       },
-      body: JSON.stringify({ access_token: token }),
+      body: JSON.stringify({ 
+        access_token: token,
+        service: 'ada-kds'
+      }),
     });
 
     if (!response.ok) {

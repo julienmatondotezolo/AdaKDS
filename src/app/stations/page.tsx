@@ -52,7 +52,7 @@ function StationsPageContent() {
     active: true
   });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5009';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app';
   const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID || 'losteria';
 
   const loadStations = useCallback(async () => {
