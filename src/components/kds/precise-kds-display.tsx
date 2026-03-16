@@ -7,8 +7,10 @@ import { PreciseOrderCard } from './precise-order-card';
 import { useKDSStore } from '@/store/kds-store';
 import { useSocket } from '@/hooks/use-socket';
 import { ordersApi } from '@/lib/api';
+import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface KanbanColumn {
   id: string;
@@ -35,6 +37,8 @@ export const PreciseKDSDisplay: React.FC = () => {
   } = useKDSStore();
   
   const { isConnected } = useSocket();
+  const { isAdmin, isOwner } = useAuth();
+  const router = useRouter();
 
   const stableSetOrders = useCallback(setOrders, [setOrders]);
   
@@ -218,6 +222,19 @@ export const PreciseKDSDisplay: React.FC = () => {
       {!isConnected && (
         <div className="bg-red-600 text-white px-4 py-2 text-center text-sm">
           WARNING: Disconnected from server - Orders may not update in real-time
+        </div>
+      )}
+
+      {/* Settings Icon (Admin/Owner Only) */}
+      {(isAdmin || isOwner) && (
+        <div className="fixed top-20 right-6 z-50">
+          <button
+            onClick={() => router.push('/admin')}
+            className="bg-white border border-gray-300 text-gray-700 p-3 rounded-full shadow-lg hover:bg-gray-50 hover:shadow-xl transition-all duration-200 group"
+            title="Open Admin Panel"
+          >
+            <Settings className="w-6 h-6 text-gray-600 group-hover:text-gray-800" />
+          </button>
         </div>
       )}
 

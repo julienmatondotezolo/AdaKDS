@@ -35,9 +35,9 @@ export const GlobalStatusCards: React.FC<GlobalStatusCardsProps> = ({
     {
       label: 'Ready',
       count: readyCount,
-      borderColor: 'border-t-[#3B82F6]',
-      bgColor: 'bg-blue-50',
-      icon: <CheckCircle className="w-5 h-5 text-blue-500" />,
+      borderColor: 'border-t-[#22C55E]',
+      bgColor: 'bg-green-50',
+      icon: <CheckCircle className="w-5 h-5 text-green-500" />,
     },
     {
       label: 'Served',

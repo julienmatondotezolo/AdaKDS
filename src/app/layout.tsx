@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import 'ada-design-system/styles.css';
 import './globals.css';
+import { AuthProvider } from '@/contexts/auth-context';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -42,14 +43,17 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_WS_URL} />
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_AUTH_URL} />
       </head>
       <body 
         className={`${inter.className} antialiased`}
         suppressHydrationWarning
       >
-        <div id="kds-app" className="min-h-screen w-full">
-          {children}
-        </div>
+        <AuthProvider>
+          <div id="kds-app" className="min-h-screen w-full">
+            {children}
+          </div>
+        </AuthProvider>
         
         {/* Service Worker Registration */}
         <script
