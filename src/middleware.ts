@@ -6,19 +6,22 @@ export async function middleware(request: NextRequest) {
 
   // Use production URL for callback in production, fallback to request origin for development
   const getCallbackUrl = () => {
+    const host = request.headers.get('host');
+    
+    // Force production URL when deployed on adasystems.app domain
+    if (host?.includes('adasystems.app') || host?.includes('kds.adasystems.app')) {
+      return 'https://kds.adasystems.app/auth/callback';
+    }
+    
+    // Check environment variables
     const prodUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
     if (prodUrl) {
       const baseUrl = prodUrl.startsWith('http') ? prodUrl : `https://${prodUrl}`;
       return `${baseUrl}/auth/callback`;
     }
     
-    // Development fallback or when running on production domain
-    const origin = request.nextUrl.origin;
-    if (origin.includes('kds.adasystems.app')) {
-      return 'https://kds.adasystems.app/auth/callback';
-    }
-    
-    return `${origin}/auth/callback`;
+    // Development fallback
+    return `${request.nextUrl.origin}/auth/callback`;
   };
 
   // No token → redirect to AdaAuth login
