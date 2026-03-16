@@ -113,9 +113,9 @@ export function KDSHeader({ isConnected }: KDSHeaderProps = {}) {
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 capitalize">
                         {user?.role}
                       </span>
-                      {user?.restaurantIds && user.restaurantIds.length > 0 && (
+                      {user?.restaurant_ids && user.restaurant_ids.length > 0 && (
                         <span className="text-xs text-gray-500">
-                          {user.restaurantIds.length} restaurant{user.restaurantIds.length > 1 ? 's' : ''}
+                          {user.restaurant_ids.length} restaurant{user.restaurant_ids.length > 1 ? 's' : ''}
                         </span>
                       )}
                     </div>

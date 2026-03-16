@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { authService } from '@/lib/auth';
 
 function CallbackHandler() {
   const router = useRouter();
@@ -13,40 +12,49 @@ function CallbackHandler() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const code = searchParams.get('code');
-        const state = searchParams.get('state');
+        const token = searchParams.get('token');
+        const redirect = searchParams.get('redirect');
         const error = searchParams.get('error');
-        const errorDescription = searchParams.get('error_description');
 
         if (error) {
-          throw new Error(errorDescription || `OAuth error: ${error}`);
+          throw new Error(`Authentication error: ${error}`);
         }
 
-        if (!code || !state) {
-          throw new Error('Missing authorization code or state parameter');
+        if (!token) {
+          throw new Error('No authentication token received');
         }
 
-        // Handle the OAuth callback
-        await authService.handleCallback(code, state);
+        // Set the token as httpOnly cookie via API route
+        const response = await fetch('/api/auth/set-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to set authentication token');
+        }
 
         setStatus('success');
 
-        // Redirect to original path or dashboard after successful auth
-        const redirectPath = localStorage.getItem('adakds_redirect_after_auth') || '/';
-        localStorage.removeItem('adakds_redirect_after_auth');
+        // Redirect to specified path or dashboard
+        const redirectPath = redirect || '/';
         
         setTimeout(() => {
           router.push(redirectPath);
-        }, 2000);
+        }, 1500);
 
       } catch (err) {
         console.error('[AUTH] Callback failed:', err);
         setError(err instanceof Error ? err.message : 'Authentication failed');
         setStatus('error');
 
-        // Redirect to login after error
+        // Redirect to AdaAuth after error (will trigger login flow)
         setTimeout(() => {
-          router.push('/login');
+          window.location.href = 'https://auth.adasystems.app/';
         }, 3000);
       }
     };

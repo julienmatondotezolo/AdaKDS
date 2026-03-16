@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { authService, type AuthContextType, type LoginCredentials, type User } from '@/lib/auth';
+import { authService, type AuthContextType, type User } from '@/lib/auth';
 
 // ─── Context Definition ──────────────────────────────────────────────────────
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -9,7 +9,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // ─── Provider Component ────────────────────────────────────────────────────
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,29 +19,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(true);
         setError(null);
 
-        // Check if we have stored authentication
-        const storedToken = authService.getToken();
-        const storedUser = authService.getUser();
-
-        if (storedToken && storedUser) {
-          // Validate the stored token
-          const validatedUser = await authService.validateToken();
-          
-          if (validatedUser) {
-            setUser(validatedUser);
-            setToken(storedToken);
-          } else {
-            // Token invalid, clear everything
-            authService.logout();
-            setUser(null);
-            setToken(null);
-          }
-        }
+        // Get current user from cookie-based session
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
       } catch (err) {
         console.error('[AUTH] Initialization failed:', err);
         setError(err instanceof Error ? err.message : 'Authentication initialization failed');
         setUser(null);
-        setToken(null);
       } finally {
         setLoading(false);
       }
@@ -51,33 +34,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
   }, []);
 
-  // ─── Login Function ────────────────────────────────────────────────────────
-  const login = async (credentials?: LoginCredentials): Promise<void> => {
+  // ─── Logout Function ───────────────────────────────────────────────────────
+  const logout = async (): Promise<void> => {
     try {
-      setLoading(true);
+      await authService.logout();
+      setUser(null);
       setError(null);
-
-      // For OAuth flow, this will redirect to Ada Auth
-      await authService.login(credentials);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      setError(errorMessage);
-      throw err; // Re-throw so components can handle it
-    } finally {
-      setLoading(false);
+      console.error('[AUTH] Logout failed:', err);
+      setError(err instanceof Error ? err.message : 'Logout failed');
     }
   };
 
-  // ─── Logout Function ───────────────────────────────────────────────────────
-  const logout = (): void => {
-    authService.logout();
-    setUser(null);
-    setToken(null);
-    setError(null);
-  };
-
   // ─── Helper Functions ──────────────────────────────────────────────────────
-  const isAuthenticated = Boolean(token && user);
+  const isAuthenticated = user !== null;
 
   const isAdmin = user ? authService.isAdmin() : false;
 
@@ -90,8 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ─── Context Value ─────────────────────────────────────────────────────────
   const contextValue: AuthContextType = {
     user,
-    token,
-    login,
     logout,
     isAuthenticated,
     isAdmin,
@@ -147,9 +115,14 @@ export function ProtectedRoute({
     );
   }
 
-  // Check authentication
+  // Check authentication - middleware should handle redirects
   if (!isAuthenticated) {
-    return fallback || <LoginRequired />;
+    return fallback || (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <span className="ml-2 text-gray-600">Redirecting to login...</span>
+      </div>
+    );
   }
 
   // Check admin requirement
@@ -171,29 +144,6 @@ export function ProtectedRoute({
 }
 
 // ─── Fallback Components ───────────────────────────────────────────────────
-function LoginRequired() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Authentication Required</h2>
-          <p className="mt-2 text-gray-600">
-            Please log in to access AdaKDS.
-          </p>
-        </div>
-        <div className="mt-4">
-          <a
-            href="/login"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Log In
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 interface AccessDeniedProps {
   requiredRole?: string;
   reason?: string;
@@ -211,8 +161,8 @@ function AccessDenied({ requiredRole, reason }: AccessDeniedProps) {
             {requiredRole 
               ? `This page requires ${requiredRole} access.`
               : reason
-              ? `You don't have access to ${reason}.`
-              : 'You don\'t have permission to access this page.'
+              ? `You don&apos;t have access to ${reason}.`
+              : 'You don&apos;t have permission to access this page.'
             }
           </p>
           {user && (
