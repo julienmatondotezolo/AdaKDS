@@ -42,14 +42,23 @@ export const useSocket = () => {
     });
 
     // Order event handlers
+    socket.on('new_order_received', (data: any) => {
+      console.log('[NEW ORDER] Order received:', data.order.order_number);
+      addOrder(data.order);
+      playNotificationSound('new');
+    });
+
     socket.on('ada_menu_order_received', (data: any) => {
       console.log('[NEW ORDER] AdaMenu order received:', data.order.order_number);
-      console.log('Order details:', data.order);
-      
-      // Add the new order to the store immediately
       addOrder(data.order);
-      
-      // Play new order notification sound
+      playNotificationSound('new');
+    });
+
+    socket.on('bulk_orders_received', (data: any) => {
+      console.log(`[NEW ORDERS] ${data.count} orders received`);
+      for (const order of data.orders) {
+        addOrder(order);
+      }
       playNotificationSound('new');
     });
 

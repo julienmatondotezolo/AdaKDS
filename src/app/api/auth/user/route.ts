@@ -51,8 +51,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const data = await response.json();
-
     if (!data.valid) {
       // Clear invalid cookie
       cookieStore.delete('ada_access_token');
