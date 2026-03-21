@@ -115,8 +115,12 @@ export function ProtectedRoute({
     );
   }
 
-  // Check authentication - middleware should handle redirects
+  // Check authentication - redirect to AdaAuth if not logged in
   if (!isAuthenticated) {
+    if (typeof window !== 'undefined') {
+      const callback = `${window.location.origin}/auth/callback`;
+      window.location.href = `https://auth.adasystems.app/?redirect=${encodeURIComponent(callback)}`;
+    }
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />

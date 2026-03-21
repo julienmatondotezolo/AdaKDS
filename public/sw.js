@@ -2,10 +2,7 @@
 
 const CACHE_NAME = 'adakds-v1';
 const STATIC_ASSETS = [
-  '/',
   '/manifest.json',
-  '/_next/static/css/',
-  '/_next/static/js/',
 ];
 
 // Install event - cache static assets
