@@ -41,18 +41,19 @@ export const PreciseKDSDisplay: React.FC = () => {
   const { isAdmin, isOwner } = useAuth();
   const { restaurantId } = useRestaurant();
   const router = useRouter();
-  const ordersApi = createOrdersApi(restaurantId!);
+  const ordersApi = restaurantId ? createOrdersApi(restaurantId) : null;
 
   const stableSetOrders = useCallback(setOrders, [setOrders]);
   
   // Load initial data
   useEffect(() => {
+    if (!ordersApi) return;
     const loadInitialData = async () => {
       try {
         setError(null);
         setIsLoading(true);
         console.log('[KDS] Loading orders...');
-        
+
         const ordersResponse = await ordersApi.getAll().catch(err => {
           console.error('[ORDERS] API error:', err);
           return []; // Return empty array on error
@@ -89,10 +90,11 @@ export const PreciseKDSDisplay: React.FC = () => {
     };
 
     loadInitialData();
-  }, [stableSetOrders]);
+  }, [stableSetOrders, ordersApi]);
 
   // Refresh orders every 30 seconds
   useEffect(() => {
+    if (!ordersApi) return;
     const refreshInterval = setInterval(async () => {
       try {
         const response = await ordersApi.getAll();
@@ -112,9 +114,10 @@ export const PreciseKDSDisplay: React.FC = () => {
     }, 30000); // 30 seconds
 
     return () => clearInterval(refreshInterval);
-  }, [stableSetOrders]);
+  }, [stableSetOrders, ordersApi]);
 
   const handleStartOrder = async (orderId: string) => {
+    if (!ordersApi) return;
     try {
       bumpOrder(orderId);
       await ordersApi.updateStatus(orderId, 'preparing');
@@ -124,8 +127,8 @@ export const PreciseKDSDisplay: React.FC = () => {
   };
 
   const handlePauseOrder = async (orderId: string) => {
+    if (!ordersApi) return;
     try {
-      // Pause functionality - could update a pause flag
       await ordersApi.updateStatus(orderId, 'preparing');
     } catch (error) {
       console.error('Failed to pause order:', error);
@@ -133,6 +136,7 @@ export const PreciseKDSDisplay: React.FC = () => {
   };
 
   const handleFinishOrder = async (orderId: string) => {
+    if (!ordersApi) return;
     try {
       await ordersApi.updateStatus(orderId, 'ready');
     } catch (error) {
@@ -141,6 +145,7 @@ export const PreciseKDSDisplay: React.FC = () => {
   };
 
   const handleServeOrder = async (orderId: string) => {
+    if (!ordersApi) return;
     try {
       await ordersApi.updateStatus(orderId, 'completed');
     } catch (error) {

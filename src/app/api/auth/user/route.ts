@@ -60,7 +60,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ user: data.user });
+    // Extract restaurant IDs from restaurant_access array
+    const restaurantIds = (data.restaurant_access || [])
+      .filter((ra: any) => ra.active !== false)
+      .map((ra: any) => ra.restaurant_id);
+
+    return NextResponse.json({
+      user: {
+        ...data.user,
+        restaurant_ids: restaurantIds,
+      }
+    });
   } catch (error) {
     console.error('[AUTH] Get user error:', error);
     return NextResponse.json(
