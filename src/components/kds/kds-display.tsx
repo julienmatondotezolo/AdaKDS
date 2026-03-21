@@ -5,7 +5,8 @@ import { KDSHeader } from './kds-header';
 import { PixelPerfectOrderCard } from './pixel-perfect-order-card';
 import { useKDSStore } from '@/store/kds-store';
 import { useSocket } from '@/hooks/use-socket';
-import { ordersApi } from '@/lib/api';
+import { createOrdersApi } from '@/lib/api';
+import { useRestaurant } from '@/contexts/restaurant-context';
 import { cn } from '@/lib/utils';
 import { Bell, Flame, CheckCircle2, Utensils } from 'lucide-react';
 
@@ -70,6 +71,8 @@ export const KDSDisplay: React.FC = () => {
   } = useKDSStore();
   
   const { isConnected } = useSocket();
+  const { restaurantId } = useRestaurant();
+  const ordersApi = createOrdersApi(restaurantId!);
 
   const stableSetOrders = useCallback(setOrders, [setOrders]);
   

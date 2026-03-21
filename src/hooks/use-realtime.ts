@@ -2,13 +2,14 @@
 
 import { useEffect, useCallback } from 'react';
 import { useKDSStore } from '@/store/kds-store';
+import { useRestaurant } from '@/contexts/restaurant-context';
 import type { Order } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app';
-const RESTAURANT_ID = process.env.NEXT_PUBLIC_RESTAURANT_ID || 'losteria';
 
 export const useRealtime = () => {
   const { setConnected, setOrders, addOrder } = useKDSStore();
+  const { restaurantId: RESTAURANT_ID } = useRestaurant();
 
   // Sound notification functions
   const playNotificationSound = useCallback((status: string) => {

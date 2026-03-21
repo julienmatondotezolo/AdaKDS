@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import 'ada-design-system/styles.css';
 import './globals.css';
 import { AuthProvider } from '@/contexts/auth-context';
+import { RestaurantProvider } from '@/contexts/restaurant-context';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -50,9 +51,11 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <AuthProvider>
-          <div id="kds-app" className="min-h-screen w-full">
-            {children}
-          </div>
+          <RestaurantProvider>
+            <div id="kds-app" className="min-h-screen w-full">
+              {children}
+            </div>
+          </RestaurantProvider>
         </AuthProvider>
         
         {/* Service Worker Registration */}

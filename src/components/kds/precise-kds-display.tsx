@@ -6,8 +6,9 @@ import { GlobalStatusCards } from './global-status-cards';
 import { PreciseOrderCard } from './precise-order-card';
 import { useKDSStore } from '@/store/kds-store';
 import { useSocket } from '@/hooks/use-socket';
-import { ordersApi } from '@/lib/api';
+import { createOrdersApi } from '@/lib/api';
 import { useAuth } from '@/contexts/auth-context';
+import { useRestaurant } from '@/contexts/restaurant-context';
 import { cn } from '@/lib/utils';
 import { RotateCcw, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -38,7 +39,9 @@ export const PreciseKDSDisplay: React.FC = () => {
   
   const { isConnected } = useSocket();
   const { isAdmin, isOwner } = useAuth();
+  const { restaurantId } = useRestaurant();
   const router = useRouter();
+  const ordersApi = createOrdersApi(restaurantId!);
 
   const stableSetOrders = useCallback(setOrders, [setOrders]);
   

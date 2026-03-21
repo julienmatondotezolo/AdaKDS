@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit3, Trash2, Settings, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProtectedRoute } from '@/contexts/auth-context';
+import { useRestaurant } from '@/contexts/restaurant-context';
+import { RestaurantSelector } from '@/components/kds/restaurant-selector';
 import { KDSHeader } from '@/components/kds/kds-header';
 import { apiRequest } from '@/lib/auth';
 
@@ -53,17 +55,19 @@ function StationsPageContent() {
   });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app';
-  const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID || 'losteria';
+  const { restaurantId: selectedRestaurantId, needsSelection } = useRestaurant();
+  const restaurantId = selectedRestaurantId || '';
 
   const loadStations = useCallback(async () => {
+    if (!restaurantId) return;
     try {
       setLoading(true);
       setError(null);
-      
+
       const data = await apiRequest<{ stations: Station[] }>(
         `${API_URL}/api/v1/stations?restaurant_id=${restaurantId}`
       );
-      
+
       setStations(data.stations || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load stations');
@@ -77,6 +81,8 @@ function StationsPageContent() {
   useEffect(() => {
     loadStations();
   }, [loadStations]);
+
+  if (needsSelection) return <RestaurantSelector />;
 
   const handleCreateStation = () => {
     setEditingStation(null);

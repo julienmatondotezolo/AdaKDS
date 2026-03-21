@@ -5,7 +5,8 @@ import { SimpleOrderCard } from './simple-order-card';
 import { SimpleKanbanHeader } from './simple-kanban-header';
 import { useKDSStore } from '@/store/kds-store';
 import { useRealtime } from '@/hooks/use-realtime';
-import { ordersApi } from '@/lib/api';
+import { createOrdersApi } from '@/lib/api';
+import { useRestaurant } from '@/contexts/restaurant-context';
 import { cn } from '@/lib/utils';
 import { CheckCircle, UtensilsCrossed, ChefHat, Clock } from 'lucide-react';
 import type { Order } from '@/types';
@@ -22,6 +23,8 @@ export const SimpleKanbanDisplay: React.FC = () => {
   } = useKDSStore();
   
   const { isConnected } = useRealtime();
+  const { restaurantId } = useRestaurant();
+  const ordersApi = createOrdersApi(restaurantId!);
 
   // Update loading state based on connection
   useEffect(() => {

@@ -1,9 +1,4 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-kds.adasystems.app';
-const RESTAURANT_ID = process.env.NEXT_PUBLIC_RESTAURANT_ID;
-
-if (!RESTAURANT_ID) {
-  throw new Error('NEXT_PUBLIC_RESTAURANT_ID environment variable is required but not set');
-}
 
 export class ApiError extends Error {
   constructor(
@@ -18,7 +13,7 @@ export class ApiError extends Error {
 
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
@@ -29,13 +24,13 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 
   try {
     const response = await fetch(url, config);
-    
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ 
-        error: 'UNKNOWN_ERROR', 
-        message: `HTTP ${response.status}` 
+      const errorData = await response.json().catch(() => ({
+        error: 'UNKNOWN_ERROR',
+        message: `HTTP ${response.status}`
       }));
-      
+
       throw new ApiError(
         errorData.message || `HTTP ${response.status}`,
         response.status,
@@ -48,7 +43,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     if (error instanceof ApiError) {
       throw error;
     }
-    
+
     // Network or parsing errors
     throw new ApiError(
       error instanceof Error ? error.message : 'Network error',
@@ -58,142 +53,146 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
   }
 }
 
-// Orders API
-export const ordersApi = {
-  async getAll(filters?: { status?: string; station?: string }) {
-    const params = new URLSearchParams();
-    if (filters?.status) params.set('status', filters.status);
-    if (filters?.station) params.set('station', filters.station);
-    
-    const query = params.toString() ? `?${params}` : '';
-    return apiRequest<{ success: boolean; orders: any[] }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/orders${query}`
-    );
-  },
+// Factory that creates API instances scoped to a restaurant
+export function createOrdersApi(restaurantId: string) {
+  return {
+    async getAll(filters?: { status?: string; station?: string }) {
+      const params = new URLSearchParams();
+      if (filters?.status) params.set('status', filters.status);
+      if (filters?.station) params.set('station', filters.station);
 
-  async updateStatus(orderId: string, status: string, oldStatus?: string) {
-    return apiRequest<{ success: boolean; order: any }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/orders/${orderId}/status`,
-      {
-        method: 'PUT',
-        body: JSON.stringify({ status, old_status: oldStatus }),
-      }
-    );
-  },
+      const query = params.toString() ? `?${params}` : '';
+      return apiRequest<{ success: boolean; orders: any[] }>(
+        `/api/v1/restaurants/${restaurantId}/orders${query}`
+      );
+    },
 
-  async bump(orderId: string, currentStatus?: string) {
-    return apiRequest<{ success: boolean; order_id: string; old_status: string; new_status: string }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/orders/${orderId}/bump`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ current_status: currentStatus }),
-      }
-    );
-  },
+    async updateStatus(orderId: string, status: string, oldStatus?: string) {
+      return apiRequest<{ success: boolean; order: any }>(
+        `/api/v1/restaurants/${restaurantId}/orders/${orderId}/status`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({ status, old_status: oldStatus }),
+        }
+      );
+    },
 
-  async getAnalytics() {
-    return apiRequest<any>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/orders/analytics`
-    );
-  },
-};
+    async bump(orderId: string, currentStatus?: string) {
+      return apiRequest<{ success: boolean; order_id: string; old_status: string; new_status: string }>(
+        `/api/v1/restaurants/${restaurantId}/orders/${orderId}/bump`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ current_status: currentStatus }),
+        }
+      );
+    },
 
-// Stations API
-export const stationsApi = {
-  async getAll() {
-    return apiRequest<{ success: boolean; stations: any[] }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/stations`
-    );
-  },
+    async getAnalytics() {
+      return apiRequest<any>(
+        `/api/v1/restaurants/${restaurantId}/orders/analytics`
+      );
+    },
+  };
+}
 
-  async create(station: any) {
-    return apiRequest<{ success: boolean; station: any }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/stations`,
-      {
-        method: 'POST',
-        body: JSON.stringify(station),
-      }
-    );
-  },
+export function createStationsApi(restaurantId: string) {
+  return {
+    async getAll() {
+      return apiRequest<{ success: boolean; stations: any[] }>(
+        `/api/v1/restaurants/${restaurantId}/stations`
+      );
+    },
 
-  async update(stationId: string, updates: any) {
-    return apiRequest<{ success: boolean; station: any }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/stations/${stationId}`,
-      {
-        method: 'PUT',
-        body: JSON.stringify(updates),
-      }
-    );
-  },
+    async create(station: any) {
+      return apiRequest<{ success: boolean; station: any }>(
+        `/api/v1/restaurants/${restaurantId}/stations`,
+        {
+          method: 'POST',
+          body: JSON.stringify(station),
+        }
+      );
+    },
 
-  async getOrders(stationId: string, status?: string) {
-    const query = status ? `?status=${status}` : '';
-    return apiRequest<{ success: boolean; orders: any[] }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/stations/${stationId}/orders${query}`
-    );
-  },
-};
+    async update(stationId: string, updates: any) {
+      return apiRequest<{ success: boolean; station: any }>(
+        `/api/v1/restaurants/${restaurantId}/stations/${stationId}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify(updates),
+        }
+      );
+    },
 
-// Display API
-export const displayApi = {
-  async getConfig() {
-    return apiRequest<{ success: boolean; config: any }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/display/config`
-    );
-  },
+    async getOrders(stationId: string, status?: string) {
+      const query = status ? `?status=${status}` : '';
+      return apiRequest<{ success: boolean; orders: any[] }>(
+        `/api/v1/restaurants/${restaurantId}/stations/${stationId}/orders${query}`
+      );
+    },
+  };
+}
 
-  async updateConfig(config: any) {
-    return apiRequest<{ success: boolean; config: any }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/display/config`,
-      {
-        method: 'PUT',
-        body: JSON.stringify(config),
-      }
-    );
-  },
+export function createDisplayApi(restaurantId: string) {
+  return {
+    async getConfig() {
+      return apiRequest<{ success: boolean; config: any }>(
+        `/api/v1/restaurants/${restaurantId}/display/config`
+      );
+    },
 
-  async getStatus() {
-    return apiRequest<{ success: boolean; status: any }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/display/status`
-    );
-  },
+    async updateConfig(config: any) {
+      return apiRequest<{ success: boolean; config: any }>(
+        `/api/v1/restaurants/${restaurantId}/display/config`,
+        {
+          method: 'PUT',
+          body: JSON.stringify(config),
+        }
+      );
+    },
 
-  async sendTestAlert(message: string, level = 'info') {
-    return apiRequest<{ success: boolean; alert: any }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/display/test-alert`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ message, level }),
-      }
-    );
-  },
+    async getStatus() {
+      return apiRequest<{ success: boolean; status: any }>(
+        `/api/v1/restaurants/${restaurantId}/display/status`
+      );
+    },
 
-  async forceRefresh() {
-    return apiRequest<{ success: boolean; message: string }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/display/refresh`,
-      {
-        method: 'POST',
-      }
-    );
-  },
+    async sendTestAlert(message: string, level = 'info') {
+      return apiRequest<{ success: boolean; alert: any }>(
+        `/api/v1/restaurants/${restaurantId}/display/test-alert`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ message, level }),
+        }
+      );
+    },
 
-  async sendNotification(notification: { 
-    title?: string; 
-    message?: string; 
-    type?: string; 
-    duration?: number 
-  }) {
-    return apiRequest<{ success: boolean; notification: any }>(
-      `/api/v1/restaurants/${RESTAURANT_ID}/display/notifications`,
-      {
-        method: 'POST',
-        body: JSON.stringify(notification),
-      }
-    );
-  },
-};
+    async forceRefresh() {
+      return apiRequest<{ success: boolean; message: string }>(
+        `/api/v1/restaurants/${restaurantId}/display/refresh`,
+        {
+          method: 'POST',
+        }
+      );
+    },
 
-// Health check
+    async sendNotification(notification: {
+      title?: string;
+      message?: string;
+      type?: string;
+      duration?: number
+    }) {
+      return apiRequest<{ success: boolean; notification: any }>(
+        `/api/v1/restaurants/${restaurantId}/display/notifications`,
+        {
+          method: 'POST',
+          body: JSON.stringify(notification),
+        }
+      );
+    },
+  };
+}
+
+// Health check (not restaurant-scoped)
 export const healthApi = {
   async check() {
     return apiRequest<{ status: string; service: string; version: string; uptime: number }>(
