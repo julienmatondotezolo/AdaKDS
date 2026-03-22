@@ -1,11 +1,17 @@
 'use client';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
+export interface RestaurantInfo {
+  id: string;
+  name: string;
+}
+
 export interface User {
   id: string;
   email: string;
   role: string;
   restaurant_ids: string[];
+  restaurants: RestaurantInfo[];
   permissions: string[];
   name?: string;
   full_name?: string;

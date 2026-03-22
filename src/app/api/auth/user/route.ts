@@ -60,15 +60,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Extract restaurant IDs from restaurant_access array
-    const restaurantIds = (data.restaurant_access || [])
-      .filter((ra: any) => ra.active !== false)
-      .map((ra: any) => ra.restaurant_id);
+    // Extract restaurant info from restaurant_access array
+    const activeAccess = (data.restaurant_access || [])
+      .filter((ra: any) => ra.active !== false);
+
+    const restaurantIds = activeAccess.map((ra: any) => ra.restaurant_id);
+    const restaurants = activeAccess.map((ra: any) => ({
+      id: ra.restaurant_id,
+      name: ra.restaurant?.name || ra.restaurant_id,
+    }));
 
     return NextResponse.json({
       user: {
         ...data.user,
         restaurant_ids: restaurantIds,
+        restaurants,
       }
     });
   } catch (error) {

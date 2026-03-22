@@ -2,12 +2,13 @@
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { useAuth } from './auth-context';
+import type { RestaurantInfo } from '@/lib/auth';
 
 interface RestaurantContextType {
   restaurantId: string | null;
   selectRestaurant: (id: string) => boolean;
   needsSelection: boolean;
-  availableRestaurants: string[];
+  availableRestaurants: RestaurantInfo[];
 }
 
 const RestaurantContext = createContext<RestaurantContextType | null>(null);
@@ -16,24 +17,25 @@ export function RestaurantProvider({ children }: { children: React.ReactNode }) 
   const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const restaurants = useMemo(() => user?.restaurant_ids ?? [], [user?.restaurant_ids]);
+  const restaurantIds = useMemo(() => user?.restaurant_ids ?? [], [user?.restaurant_ids]);
+  const restaurants = useMemo(() => user?.restaurants ?? [], [user?.restaurants]);
 
   // Auto-select if user has exactly one restaurant
-  const effectiveId = restaurants.length === 1
-    ? restaurants[0]
+  const effectiveId = restaurantIds.length === 1
+    ? restaurantIds[0]
     : selectedId;
 
-  const needsSelection = restaurants.length > 1 && !selectedId;
+  const needsSelection = restaurantIds.length > 1 && !selectedId;
 
   const selectRestaurant = useCallback((id: string): boolean => {
     // Validate against user's allowed restaurants
-    if (!restaurants.includes(id)) {
+    if (!restaurantIds.includes(id)) {
       console.error(`[RESTAURANT] Access denied: user does not have access to ${id}`);
       return false;
     }
     setSelectedId(id);
     return true;
-  }, [restaurants]);
+  }, [restaurantIds]);
 
   return (
     <RestaurantContext.Provider value={{
