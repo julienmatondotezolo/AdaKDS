@@ -14,18 +14,21 @@ interface RestaurantContextType {
 const RestaurantContext = createContext<RestaurantContextType | null>(null);
 
 export function RestaurantProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const restaurantIds = useMemo(() => user?.restaurant_ids ?? [], [user?.restaurant_ids]);
   const restaurants = useMemo(() => user?.restaurants ?? [], [user?.restaurants]);
 
-  // Auto-select if user has exactly one restaurant
-  const effectiveId = restaurantIds.length === 1
-    ? restaurantIds[0]
-    : selectedId;
+  // Non-admin users: always auto-select their first assigned restaurant
+  // Admin users: must pick if they have multiple restaurants
+  const effectiveId = !isAdmin
+    ? restaurantIds[0] ?? null
+    : restaurantIds.length === 1
+      ? restaurantIds[0]
+      : selectedId;
 
-  const needsSelection = restaurantIds.length > 1 && !selectedId;
+  const needsSelection = isAdmin && restaurantIds.length > 1 && !selectedId;
 
   const selectRestaurant = useCallback((id: string): boolean => {
     // Validate against user's allowed restaurants
