@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Settings, RefreshCw, Utensils } from 'lucide-react';
+import { useRestaurant } from '@/contexts/restaurant-context';
 
 interface PreciseKDSHeaderProps {
   isConnected: boolean;
 }
 
 export const PreciseKDSHeader: React.FC<PreciseKDSHeaderProps> = ({ isConnected }) => {
+  const { restaurantName } = useRestaurant();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update clock every second
@@ -45,7 +47,12 @@ export const PreciseKDSHeader: React.FC<PreciseKDSHeaderProps> = ({ isConnected 
           <div className="w-10 h-10 bg-[#3B82F6] rounded-lg flex items-center justify-center">
             <Utensils className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">Ada KDS</h1>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Ada KDS</h1>
+            {restaurantName && (
+              <p className="text-sm text-gray-500 -mt-0.5">{restaurantName}</p>
+            )}
+          </div>
         </div>
 
         {/* Right: Status, Clock, and Controls */}

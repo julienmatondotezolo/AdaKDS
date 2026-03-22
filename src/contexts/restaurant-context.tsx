@@ -6,6 +6,7 @@ import type { RestaurantInfo } from '@/lib/auth';
 
 interface RestaurantContextType {
   restaurantId: string | null;
+  restaurantName: string | null;
   selectRestaurant: (id: string) => boolean;
   needsSelection: boolean;
   availableRestaurants: RestaurantInfo[];
@@ -30,6 +31,11 @@ export function RestaurantProvider({ children }: { children: React.ReactNode }) 
 
   const needsSelection = isAdmin && restaurantIds.length > 1 && !selectedId;
 
+  const restaurantName = useMemo(() => {
+    if (!effectiveId) return null;
+    return restaurants.find((r) => r.id === effectiveId)?.name ?? null;
+  }, [effectiveId, restaurants]);
+
   const selectRestaurant = useCallback((id: string): boolean => {
     // Validate against user's allowed restaurants
     if (!restaurantIds.includes(id)) {
@@ -43,6 +49,7 @@ export function RestaurantProvider({ children }: { children: React.ReactNode }) 
   return (
     <RestaurantContext.Provider value={{
       restaurantId: effectiveId,
+      restaurantName,
       selectRestaurant,
       needsSelection,
       availableRestaurants: restaurants,
