@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { PreciseKDSHeader } from './precise-kds-header';
 import { GlobalStatusCards } from './global-status-cards';
 import { PreciseOrderCard } from './precise-order-card';
@@ -41,7 +41,10 @@ export const PreciseKDSDisplay: React.FC = () => {
   const { isAdmin, isOwner } = useAuth();
   const { restaurantId } = useRestaurant();
   const router = useRouter();
-  const ordersApi = restaurantId ? createOrdersApi(restaurantId) : null;
+  const ordersApi = useMemo(
+    () => restaurantId ? createOrdersApi(restaurantId) : null,
+    [restaurantId]
+  );
 
   const stableSetOrders = useCallback(setOrders, [setOrders]);
   
