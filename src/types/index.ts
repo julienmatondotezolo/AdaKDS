@@ -105,6 +105,15 @@ export interface Alert {
   timestamp: string;
 }
 
+export interface UndoEntry {
+  /** Each affected order: id + status it had before the change. */
+  changes: Array<{ orderId: string; previousStatus: OrderStatus }>;
+  /** Status everything was moved to (display-only hint, not used to revert). */
+  appliedStatus: OrderStatus;
+  /** When the action was recorded. */
+  at: number;
+}
+
 export interface KDSStore {
   // State
   orders: Order[];
@@ -113,7 +122,8 @@ export interface KDSStore {
   isConnected: boolean;
   selectedStations: string[];
   currentTime: Date;
-  
+  lastAction: UndoEntry | null;
+
   // Actions
   setOrders: (orders: Order[]) => void;
   updateOrder: (orderId: string, updates: Partial<Order>) => void;
@@ -125,6 +135,8 @@ export interface KDSStore {
   setSelectedStations: (stations: string[]) => void;
   bumpOrder: (orderId: string) => void;
   markOrderCompleted: (orderId: string) => void;
+  recordAction: (entry: UndoEntry) => void;
+  clearLastAction: () => void;
 }
 
 // Enums and Union Types

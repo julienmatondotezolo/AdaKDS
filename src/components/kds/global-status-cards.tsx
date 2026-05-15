@@ -3,6 +3,7 @@
 import React from 'react';
 import { Bell, Flame, CheckCircle, Utensils } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/locale-context';
 
 interface GlobalStatusCardsProps {
   newCount: number;
@@ -17,30 +18,31 @@ export const GlobalStatusCards: React.FC<GlobalStatusCardsProps> = ({
   readyCount,
   servedCount,
 }) => {
+  const { t } = useTranslation();
   const cards = [
     {
-      label: 'New',
+      label: t('columns.new'),
       count: newCount,
       borderColor: 'border-t-[#3B82F6]',
       bgColor: 'bg-blue-50',
       icon: <Bell className="w-5 h-5 text-blue-500" />,
     },
     {
-      label: 'Process',
+      label: t('columns.process'),
       count: processCount,
       borderColor: 'border-t-[#F97316]',
       bgColor: 'bg-orange-50',
       icon: <Flame className="w-5 h-5 text-orange-500" />,
     },
     {
-      label: 'Ready',
+      label: t('columns.ready'),
       count: readyCount,
       borderColor: 'border-t-[#22C55E]',
       bgColor: 'bg-green-50',
       icon: <CheckCircle className="w-5 h-5 text-green-500" />,
     },
     {
-      label: 'Served',
+      label: t('columns.served'),
       count: servedCount,
       borderColor: 'border-t-[#1E40AF]',
       bgColor: 'bg-blue-50',

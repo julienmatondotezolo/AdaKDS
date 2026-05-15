@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, RefreshCw, Utensils } from 'lucide-react';
 import { useRestaurant } from '@/contexts/restaurant-context';
+import { useTranslation } from '@/i18n/locale-context';
 import Link from 'next/link';
 
 interface PreciseKDSHeaderProps {
@@ -11,6 +12,7 @@ interface PreciseKDSHeaderProps {
 
 export const PreciseKDSHeader: React.FC<PreciseKDSHeaderProps> = ({ isConnected }) => {
   const { restaurantName } = useRestaurant();
+  const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update clock every second
@@ -62,7 +64,7 @@ export const PreciseKDSHeader: React.FC<PreciseKDSHeaderProps> = ({ isConnected 
           <div className="flex items-center gap-2 bg-green-100 px-3 py-1 rounded-full">
             <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
             <span className="text-sm font-medium text-green-700">
-              {isConnected ? 'LIVE' : 'OFFLINE'}
+              {isConnected ? t('header.live') : 'OFFLINE'}
             </span>
           </div>
 

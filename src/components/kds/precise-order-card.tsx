@@ -4,6 +4,7 @@ import React from 'react';
 import { Play, Check, Utensils, StickyNote } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useElapsedSeconds } from '@/hooks/use-elapsed-seconds';
+import { useTranslation } from '@/i18n/locale-context';
 import type { Order } from '@/types';
 
 interface PreciseOrderCardProps {
@@ -41,6 +42,7 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
   onFinishOrder,
   onServeOrder,
 }) => {
+  const { t } = useTranslation();
   const validOrders = orders.filter((o): o is Order => !!o);
 
   const oldest: Order | undefined =
@@ -71,10 +73,10 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
   const tableLabel =
     getTableLabel(oldest) ??
     (oldest.customer_type === 'takeaway'
-      ? 'Takeaway'
+      ? t('customer.takeaway')
       : oldest.customer_type === 'delivery'
-        ? 'Delivery'
-        : 'Walk-in');
+        ? t('customer.delivery')
+        : t('customer.walkin'));
 
   const customerNames = Array.from(
     new Set(validOrders.map(getRealCustomerName).filter((n): n is string => !!n))
@@ -115,7 +117,7 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
               <h3 className="font-bold text-gray-900 text-lg leading-tight">{tableLabel}</h3>
               {validOrders.length > 1 && (
                 <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                  {validOrders.length} orders
+                  {validOrders.length} {t('card.orders')}
                 </span>
               )}
             </div>
@@ -166,7 +168,7 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
                 </div>
                 {item.estimated_time && status === 'PROCESS' && (
                   <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium shrink-0">
-                    {item.estimated_time} min
+                    {item.estimated_time} {t('card.min')}
                   </span>
                 )}
               </div>
@@ -200,7 +202,7 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
             className="w-full flex items-center justify-center gap-2 bg-[#3B82F6] hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
           >
             <Play className="w-4 h-4" />
-            Start
+            {t('card.start')}
           </button>
         )}
 
@@ -210,7 +212,7 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
             className="w-full flex items-center justify-center gap-2 bg-[#22C55E] hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
           >
             <Check className="w-4 h-4" />
-            Finish
+            {t('card.finish')}
           </button>
         )}
 
@@ -220,7 +222,7 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
             className="w-full flex items-center justify-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-3 rounded-lg font-medium text-sm transition-colors"
           >
             <Utensils className="w-4 h-4 text-gray-600" />
-            Serve Order
+            {t('card.serve')}
           </button>
         )}
       </div>

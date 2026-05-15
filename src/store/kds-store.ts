@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { Order, Station, DisplayConfig, KDSStore } from '@/types';
+import type { Order, Station, DisplayConfig, KDSStore, UndoEntry } from '@/types';
 
 export const useKDSStore = create<KDSStore>()(
   subscribeWithSelector((set, get) => ({
@@ -13,6 +13,7 @@ export const useKDSStore = create<KDSStore>()(
     isConnected: false,
     selectedStations: [],
     currentTime: new Date(),
+    lastAction: null,
 
     // Actions
     setOrders: (orders: Order[]) => {
@@ -86,10 +87,18 @@ export const useKDSStore = create<KDSStore>()(
     },
 
     markOrderCompleted: (orderId: string) => {
-      get().updateOrder(orderId, { 
+      get().updateOrder(orderId, {
         status: 'completed',
         updated_at: new Date().toISOString()
       });
+    },
+
+    recordAction: (entry: UndoEntry) => {
+      set({ lastAction: entry });
+    },
+
+    clearLastAction: () => {
+      set({ lastAction: null });
     },
   }))
 );

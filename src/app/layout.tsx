@@ -4,6 +4,7 @@ import 'ada-design-system/styles.css';
 import './globals.css';
 import { AuthProvider } from '@/contexts/auth-context';
 import { RestaurantProvider } from '@/contexts/restaurant-context';
+import { LocaleProvider } from '@/i18n/locale-context';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -50,13 +51,15 @@ export default function RootLayout({
         className={`${inter.className} antialiased`}
         suppressHydrationWarning
       >
-        <AuthProvider>
-          <RestaurantProvider>
-            <div id="kds-app" className="min-h-screen w-full">
-              {children}
-            </div>
-          </RestaurantProvider>
-        </AuthProvider>
+        <LocaleProvider>
+          <AuthProvider>
+            <RestaurantProvider>
+              <div id="kds-app" className="min-h-screen w-full">
+                {children}
+              </div>
+            </RestaurantProvider>
+          </AuthProvider>
+        </LocaleProvider>
         
         {/* Service Worker Registration — skipped in dev, with auto-cleanup of stale workers */}
         <script

@@ -8,8 +8,10 @@ import { useKDSStore } from '@/store/kds-store';
 import { useSocket } from '@/hooks/use-socket';
 import { createOrdersApi } from '@/lib/api';
 import { useRestaurant } from '@/contexts/restaurant-context';
+import { useTranslation } from '@/i18n/locale-context';
 import { cn } from '@/lib/utils';
 import { RotateCcw } from 'lucide-react';
+import type { OrderStatus } from '@/types';
 
 interface KanbanColumn {
   id: string;
@@ -52,15 +54,19 @@ export const PreciseKDSDisplay: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { 
+  const {
     orders,
-    setOrders, 
+    setOrders,
     bumpOrder,
-    markOrderCompleted
+    markOrderCompleted,
+    lastAction,
+    recordAction,
+    clearLastAction,
   } = useKDSStore();
-  
+
   const { isConnected } = useSocket();
   const { restaurantId } = useRestaurant();
+  const { t } = useTranslation();
   const ordersApi = useMemo(
     () => restaurantId ? createOrdersApi(restaurantId) : null,
     [restaurantId]
@@ -150,17 +156,46 @@ export const PreciseKDSDisplay: React.FC = () => {
     );
   };
 
-  const handleStartOrder = async (orderIds: string[]) => {
-    orderIds.forEach((id) => bumpOrder(id));
-    await updateGroup(orderIds, 'preparing');
+  /**
+   * Capture each affected order's status BEFORE mutating, then update.
+   * Used by Start/Finish/Serve so Undo can revert the group.
+   */
+  const transitionGroup = async (orderIds: string[], nextStatus: OrderStatus) => {
+    const before = orderIds
+      .map((id) => {
+        const o = orders.find((x) => x.id === id);
+        return o ? { orderId: id, previousStatus: o.status as OrderStatus } : null;
+      })
+      .filter((x): x is { orderId: string; previousStatus: OrderStatus } => !!x);
+
+    if (before.length === 0) return;
+
+    recordAction({ changes: before, appliedStatus: nextStatus, at: Date.now() });
+    // Optimistic local update so the UI moves immediately.
+    before.forEach(({ orderId }) => useKDSStore.getState().updateOrder(orderId, { status: nextStatus }));
+    await updateGroup(orderIds, nextStatus);
   };
 
-  const handleFinishOrder = (orderIds: string[]) => updateGroup(orderIds, 'ready');
-  const handleServeOrder = (orderIds: string[]) => updateGroup(orderIds, 'completed');
+  const handleStartOrder = (orderIds: string[]) => transitionGroup(orderIds, 'preparing');
+  const handleFinishOrder = (orderIds: string[]) => transitionGroup(orderIds, 'ready');
+  const handleServeOrder = (orderIds: string[]) => transitionGroup(orderIds, 'completed');
 
-  const handleUndoLastAction = () => {
-    // TODO: Implement undo functionality
-    console.log('Undo last action');
+  const handleUndoLastAction = async () => {
+    if (!lastAction || !ordersApi) return;
+    const { changes } = lastAction;
+    // Optimistic revert
+    changes.forEach(({ orderId, previousStatus }) =>
+      useKDSStore.getState().updateOrder(orderId, { status: previousStatus })
+    );
+    clearLastAction();
+    // Persist
+    await Promise.all(
+      changes.map(({ orderId, previousStatus }) =>
+        ordersApi.updateStatus(orderId, previousStatus).catch((err) => {
+          console.error(`Undo failed for ${orderId} → ${previousStatus}:`, err);
+        })
+      )
+    );
   };
 
   // ordersByStatus[col] is an array of GROUPS, each group is an Order[]
@@ -193,8 +228,8 @@ export const PreciseKDSDisplay: React.FC = () => {
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[#3B82F6] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Loading Kitchen Display</h2>
-          <p className="text-gray-600 text-lg">Fetching orders...</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('loading.title')}</h2>
+          <p className="text-gray-600 text-lg">{t('loading.subtitle')}</p>
         </div>
       </div>
     );
@@ -207,18 +242,31 @@ export const PreciseKDSDisplay: React.FC = () => {
           <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <RotateCcw className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Connection Error</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('error.connection.title')}</h2>
           <p className="text-gray-600 text-lg mb-6">{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-6 py-3 bg-[#3B82F6] text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
-            Retry
+            {t('error.retry')}
           </button>
         </div>
       </div>
     );
   }
+
+  const columnTitleKey: Record<typeof KANBAN_COLUMNS[number]['status'], string> = {
+    NEW: 'columns.new',
+    PROCESS: 'columns.process',
+    READY: 'columns.ready',
+    SERVED: 'columns.served',
+  };
+  const emptyKey: Record<typeof KANBAN_COLUMNS[number]['status'], string> = {
+    NEW: 'empty.new',
+    PROCESS: 'empty.process',
+    READY: 'empty.ready',
+    SERVED: 'empty.served',
+  };
 
   return (
     <div className="min-h-screen bg-[#F8F9FB]">
@@ -228,7 +276,7 @@ export const PreciseKDSDisplay: React.FC = () => {
       {/* Connection Status Warning */}
       {!isConnected && (
         <div className="bg-red-600 text-white px-4 py-2 text-center text-sm">
-          WARNING: Disconnected from server - Orders may not update in real-time
+          {t('warning.disconnected')}
         </div>
       )}
 
@@ -248,7 +296,7 @@ export const PreciseKDSDisplay: React.FC = () => {
               {/* Column Header */}
               <div className="mb-4">
                 <h2 className="text-lg font-medium text-gray-600 flex items-center gap-2">
-                  {column.title}
+                  {t(columnTitleKey[column.status])}
                   <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm font-bold">
                     {getStatusCount(column.status)}
                   </span>
@@ -259,11 +307,7 @@ export const PreciseKDSDisplay: React.FC = () => {
               <div className="space-y-4 min-h-[600px]">
                 {(ordersByStatus[column.status]?.length ?? 0) === 0 ? (
                   <div className="text-center text-gray-400 mt-20">
-                    <p className="text-sm text-gray-500">
-                      {column.status === 'NEW' ? 'No new orders' :
-                       column.status === 'PROCESS' ? 'No orders in process' :
-                       column.status === 'READY' ? 'No orders ready' : 'No orders served'}
-                    </p>
+                    <p className="text-sm text-gray-500">{t(emptyKey[column.status])}</p>
                   </div>
                 ) : (
                   ordersByStatus[column.status]?.map((group) => (
@@ -287,10 +331,14 @@ export const PreciseKDSDisplay: React.FC = () => {
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2">
         <button
           onClick={handleUndoLastAction}
-          className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-gray-50 transition-colors"
+          disabled={!lastAction}
+          className={cn(
+            'bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-full shadow-lg flex items-center gap-2 transition-colors',
+            lastAction ? 'hover:bg-gray-50 cursor-pointer' : 'opacity-50 cursor-not-allowed'
+          )}
         >
           <RotateCcw className="w-5 h-5 text-gray-500" />
-          Undo Last Action
+          {t('footer.undo')}
         </button>
       </div>
     </div>

@@ -10,10 +10,12 @@ import {
 } from 'ada-design-system';
 import {
   ArrowLeft, Plus, Edit3, Trash2, Save, X,
-  ChevronUp, ChevronDown, User, LogOut, ChefHat, Utensils,
+  ChevronUp, ChevronDown, User, LogOut, ChefHat, Utensils, Languages, Check,
 } from 'lucide-react';
 import { apiRequest } from '@/lib/auth';
 import Link from 'next/link';
+import { useTranslation } from '@/i18n/locale-context';
+import { LOCALE_LABELS, SUPPORTED_LOCALES, type Locale } from '@/i18n/translations';
 
 // ─── Types ──────────────────────────────────────────────────────────────
 interface Station {
@@ -48,19 +50,21 @@ const DEFAULT_COLORS = [
   '#EC4899', '#14B8A6', '#F97316', '#84CC16', '#6366F1',
 ];
 
-type Tab = 'profile' | 'stations';
+type Tab = 'profile' | 'stations' | 'preferences';
 
 // ─── Settings Page ──────────────────────────────────────────────────────
 function SettingsContent() {
   const { user, logout } = useAuth();
   const { restaurantId, restaurantName, needsSelection } = useRestaurant();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
 
   if (needsSelection) return <RestaurantSelector />;
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'profile', label: 'Profile', icon: <User className="w-4 h-4" /> },
-    { id: 'stations', label: 'Stations', icon: <ChefHat className="w-4 h-4" /> },
+    { id: 'profile', label: t('settings.profile'), icon: <User className="w-4 h-4" /> },
+    { id: 'stations', label: t('settings.stations'), icon: <ChefHat className="w-4 h-4" /> },
+    { id: 'preferences', label: t('settings.preferences'), icon: <Languages className="w-4 h-4" /> },
   ];
 
   return (
@@ -76,7 +80,7 @@ function SettingsContent() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Settings</h1>
+              <h1 className="text-xl font-bold text-gray-900">{t('settings.title')}</h1>
               {restaurantName && (
                 <p className="text-sm text-gray-500 -mt-0.5">{restaurantName}</p>
               )}
@@ -111,7 +115,61 @@ function SettingsContent() {
       <div className="max-w-5xl mx-auto px-6 py-6">
         {activeTab === 'profile' && <ProfileTab user={user} logout={logout} restaurantName={restaurantName} />}
         {activeTab === 'stations' && restaurantId && <StationsTab restaurantId={restaurantId} />}
+        {activeTab === 'preferences' && <PreferencesTab />}
       </div>
+    </div>
+  );
+}
+
+// ─── Preferences Tab ────────────────────────────────────────────────────
+function PreferencesTab() {
+  const { t, locale, override, setOverride } = useTranslation();
+  // The "System" option is null override; otherwise the chosen locale.
+  const selectedValue: 'system' | Locale = override ?? 'system';
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('settings.language')}</CardTitle>
+          <CardDescription>{t('settings.language.description')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setOverride(null)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+              selectedValue === 'system'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <span className="text-sm font-medium text-gray-900">
+              {t('settings.language.system')}
+              {selectedValue === 'system' && (
+                <span className="ml-2 text-xs text-gray-500">
+                  ({LOCALE_LABELS[locale]})
+                </span>
+              )}
+            </span>
+            {selectedValue === 'system' && <Check className="w-4 h-4 text-blue-600" />}
+          </button>
+          {SUPPORTED_LOCALES.map((loc) => (
+            <button
+              key={loc}
+              type="button"
+              onClick={() => setOverride(loc)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+                selectedValue === loc
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <span className="text-sm font-medium text-gray-900">{LOCALE_LABELS[loc]}</span>
+              {selectedValue === loc && <Check className="w-4 h-4 text-blue-600" />}
+            </button>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }
