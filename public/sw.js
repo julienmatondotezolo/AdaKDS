@@ -53,28 +53,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // API requests - network first
-  if (url.pathname.startsWith('/api/') || url.hostname !== self.location.hostname) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Don't cache API responses - they need to be fresh
-          return response;
-        })
-        .catch(() => {
-          // Return offline message for API failures
-          if (url.pathname.startsWith('/api/')) {
-            return new Response(
-              JSON.stringify({ error: 'OFFLINE', message: 'No network connection' }),
-              {
-                status: 503,
-                headers: { 'Content-Type': 'application/json' }
-              }
-            );
-          }
-          throw new Error('Network error');
-        })
-    );
+  // Cross-origin requests (API calls to api-kds.adasystems.app, auth.adasystems.app, etc.)
+  // are NOT intercepted — the browser handles them directly. Intercepting them caused
+  // CORS preflights to fail and masked real errors as synthetic 503s.
+  if (url.hostname !== self.location.hostname) {
+    return;
+  }
+
+  // Same-origin API: pass through, do not cache
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(request));
     return;
   }
 

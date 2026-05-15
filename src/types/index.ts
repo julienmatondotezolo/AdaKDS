@@ -8,6 +8,7 @@ export interface Order {
   items: OrderItem[];
   customer_name: string;
   customer_type: CustomerType;
+  table_number?: string;
   order_time: string;
   estimated_ready_time: string;
   elapsed_time: number;

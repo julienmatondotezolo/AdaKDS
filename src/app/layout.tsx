@@ -58,12 +58,30 @@ export default function RootLayout({
           </RestaurantProvider>
         </AuthProvider>
         
-        {/* Service Worker Registration */}
+        {/* Service Worker Registration — skipped in dev, with auto-cleanup of stale workers */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js').catch(console.error);
+                var isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                if (isDev) {
+                  if ('caches' in window) {
+                    caches.keys().then(function (keys) {
+                      keys.forEach(function (k) { caches.delete(k); });
+                    });
+                  }
+                  navigator.serviceWorker.getRegistrations().then(function (regs) {
+                    if (regs.length === 0) return;
+                    Promise.all(regs.map(function (r) { return r.unregister(); })).then(function () {
+                      if (!sessionStorage.getItem('__sw_killed__')) {
+                        sessionStorage.setItem('__sw_killed__', '1');
+                        location.reload();
+                      }
+                    });
+                  });
+                } else {
+                  navigator.serviceWorker.register('/sw.js').catch(console.error);
+                }
               }
             `,
           }}

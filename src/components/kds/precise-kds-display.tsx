@@ -115,78 +115,80 @@ export const PreciseKDSDisplay: React.FC = () => {
     return () => clearInterval(refreshInterval);
   }, [stableSetOrders, ordersApi]);
 
-  const handleStartOrder = async (orderId: string) => {
+  const updateGroup = async (orderIds: string[], status: string) => {
     if (!ordersApi) return;
-    try {
-      bumpOrder(orderId);
-      await ordersApi.updateStatus(orderId, 'preparing');
-    } catch (error) {
-      console.error('Failed to start order:', error);
-    }
+    await Promise.all(
+      orderIds.map((id) =>
+        ordersApi.updateStatus(id, status).catch((err) => {
+          console.error(`Failed to update order ${id} → ${status}:`, err);
+        })
+      )
+    );
   };
 
-  const handlePauseOrder = async (orderId: string) => {
-    if (!ordersApi) return;
-    try {
-      await ordersApi.updateStatus(orderId, 'preparing');
-    } catch (error) {
-      console.error('Failed to pause order:', error);
-    }
+  const handleStartOrder = async (orderIds: string[]) => {
+    orderIds.forEach((id) => bumpOrder(id));
+    await updateGroup(orderIds, 'preparing');
   };
 
-  const handleFinishOrder = async (orderId: string) => {
-    if (!ordersApi) return;
-    try {
-      await ordersApi.updateStatus(orderId, 'ready');
-    } catch (error) {
-      console.error('Failed to finish order:', error);
-    }
-  };
-
-  const handleServeOrder = async (orderId: string) => {
-    if (!ordersApi) return;
-    try {
-      await ordersApi.updateStatus(orderId, 'completed');
-    } catch (error) {
-      console.error('Failed to serve order:', error);
-    }
-  };
+  const handlePauseOrder = (orderIds: string[]) => updateGroup(orderIds, 'preparing');
+  const handleFinishOrder = (orderIds: string[]) => updateGroup(orderIds, 'ready');
+  const handleServeOrder = (orderIds: string[]) => updateGroup(orderIds, 'completed');
 
   const handleUndoLastAction = () => {
     // TODO: Implement undo functionality
     console.log('Undo last action');
   };
 
-  // Group orders by status with proper mapping
-  const ordersByStatus = orders.reduce((acc, order) => {
-    // Map backend status to frontend columns
-    let status: 'NEW' | 'PROCESS' | 'READY' | 'SERVED';
-    
-    switch (order.status?.toLowerCase()) {
-      case 'new':
-      case 'created':
-        status = 'NEW';
-        break;
-      case 'preparing':
-        status = 'PROCESS';
-        break;
-      case 'ready':
-        status = 'READY';
-        break;
-      case 'completed':
-        status = 'SERVED';
-        break;
-      default:
-        status = 'NEW'; // fallback
+  // Map backend status → frontend column
+  const TABLE_PATTERN = /^Table\s+(\S+)$/i;
+  const getColumnStatus = (raw: string | undefined): 'NEW' | 'PROCESS' | 'READY' | 'SERVED' => {
+    switch (raw?.toLowerCase()) {
+      case 'preparing': return 'PROCESS';
+      case 'ready': return 'READY';
+      case 'completed': return 'SERVED';
+      default: return 'NEW';
     }
-    
-    if (!acc[status]) acc[status] = [];
-    acc[status].push(order);
-    return acc;
-  }, {} as Record<string, any[]>);
+  };
 
-  // Get order counts for each status
-  const getStatusCount = (status: string) => ordersByStatus[status]?.length || 0;
+  // Group key — same table_number (or "Table N" parsed from customer_name) groups orders for a column.
+  // Non-dine-in (no table info) stays individual via the unique order id.
+  const getGroupKey = (order: typeof orders[number]): string => {
+    if (order.table_number) return `table:${order.table_number.toLowerCase()}`;
+    const m = order.customer_name?.match(TABLE_PATTERN);
+    if (m) return `table:${m[1].toLowerCase()}`;
+    return `order:${order.id}`;
+  };
+
+  // ordersByStatus[col] is an array of GROUPS, each group is an Order[]
+  const ordersByStatus = useMemo(() => {
+    const byStatus: Record<string, Map<string, typeof orders>> = {};
+    for (const order of orders) {
+      const col = getColumnStatus(order.status as unknown as string);
+      if (!byStatus[col]) byStatus[col] = new Map();
+      const key = getGroupKey(order);
+      const existing = byStatus[col].get(key);
+      if (existing) existing.push(order);
+      else byStatus[col].set(key, [order]);
+    }
+    // Convert each column's map to an array of groups, sorted by oldest order first
+    const result: Record<string, typeof orders[]> = {};
+    for (const [col, groupsMap] of Object.entries(byStatus)) {
+      const groups = Array.from(groupsMap.values());
+      const ts = (o: typeof orders[number]) => {
+        const v = o.created_at || o.order_time;
+        const t = v ? new Date(v).getTime() : NaN;
+        return Number.isFinite(t) ? t : Number.POSITIVE_INFINITY;
+      };
+      groups.forEach((g) => g.sort((a, b) => ts(a) - ts(b)));
+      groups.sort((a, b) => ts(a[0]) - ts(b[0]));
+      result[col] = groups;
+    }
+    return result;
+  }, [orders]);
+
+  const getStatusCount = (status: string) =>
+    (ordersByStatus[status] || []).reduce((sum, group) => sum + group.length, 0);
 
   if (isLoading) {
     return (
@@ -257,19 +259,19 @@ export const PreciseKDSDisplay: React.FC = () => {
 
               {/* Column Content */}
               <div className="space-y-4 min-h-[600px]">
-                {ordersByStatus[column.status]?.length === 0 ? (
+                {(ordersByStatus[column.status]?.length ?? 0) === 0 ? (
                   <div className="text-center text-gray-400 mt-20">
                     <p className="text-sm text-gray-500">
-                      {column.status === 'NEW' ? 'No new orders' : 
+                      {column.status === 'NEW' ? 'No new orders' :
                        column.status === 'PROCESS' ? 'No orders in process' :
                        column.status === 'READY' ? 'No orders ready' : 'No orders served'}
                     </p>
                   </div>
                 ) : (
-                  ordersByStatus[column.status]?.map((order) => (
+                  ordersByStatus[column.status]?.map((group) => (
                     <PreciseOrderCard
-                      key={order.id}
-                      order={order}
+                      key={group.map((o) => o.id).join('|')}
+                      orders={group}
                       status={column.status}
                       onStartOrder={handleStartOrder}
                       onPauseOrder={handlePauseOrder}

@@ -48,6 +48,11 @@ export const useRealtime = () => {
   }, []);
 
   useEffect(() => {
+    if (!RESTAURANT_ID) {
+      console.log('[REALTIME] Waiting for restaurant ID before loading orders');
+      return;
+    }
+
     const setupRealtime = async () => {
       try {
         console.log('[REALTIME] Setting up API-based realtime for restaurant:', RESTAURANT_ID);
@@ -94,7 +99,7 @@ export const useRealtime = () => {
       console.log('[REALTIME] Cleaning up');
       setConnected(false);
     };
-  }, [setConnected, setOrders, addOrder, playNotificationSound]);
+  }, [RESTAURANT_ID, setConnected, setOrders, addOrder, playNotificationSound]);
 
   return {
     isConnected: useKDSStore(state => state.isConnected),
