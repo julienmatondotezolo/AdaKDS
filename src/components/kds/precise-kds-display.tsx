@@ -24,6 +24,30 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
   { id: 'served', title: 'Served', status: 'SERVED' },
 ];
 
+const TABLE_PATTERN = /^Table\s+(\S+)$/i;
+
+const getColumnStatus = (raw: string | undefined): 'NEW' | 'PROCESS' | 'READY' | 'SERVED' => {
+  switch (raw?.toLowerCase()) {
+    case 'preparing': return 'PROCESS';
+    case 'ready': return 'READY';
+    case 'completed': return 'SERVED';
+    default: return 'NEW';
+  }
+};
+
+const getGroupKey = (order: any): string => {
+  if (order.table_number) return `table:${String(order.table_number).toLowerCase()}`;
+  const m = order.customer_name?.match(TABLE_PATTERN);
+  if (m) return `table:${m[1].toLowerCase()}`;
+  return `order:${order.id}`;
+};
+
+const orderTs = (o: any): number => {
+  const v = o.created_at || o.order_time;
+  const t = v ? new Date(v).getTime() : NaN;
+  return Number.isFinite(t) ? t : Number.POSITIVE_INFINITY;
+};
+
 export const PreciseKDSDisplay: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,26 +164,6 @@ export const PreciseKDSDisplay: React.FC = () => {
     console.log('Undo last action');
   };
 
-  // Map backend status → frontend column
-  const TABLE_PATTERN = /^Table\s+(\S+)$/i;
-  const getColumnStatus = (raw: string | undefined): 'NEW' | 'PROCESS' | 'READY' | 'SERVED' => {
-    switch (raw?.toLowerCase()) {
-      case 'preparing': return 'PROCESS';
-      case 'ready': return 'READY';
-      case 'completed': return 'SERVED';
-      default: return 'NEW';
-    }
-  };
-
-  // Group key — same table_number (or "Table N" parsed from customer_name) groups orders for a column.
-  // Non-dine-in (no table info) stays individual via the unique order id.
-  const getGroupKey = (order: typeof orders[number]): string => {
-    if (order.table_number) return `table:${order.table_number.toLowerCase()}`;
-    const m = order.customer_name?.match(TABLE_PATTERN);
-    if (m) return `table:${m[1].toLowerCase()}`;
-    return `order:${order.id}`;
-  };
-
   // ordersByStatus[col] is an array of GROUPS, each group is an Order[]
   const ordersByStatus = useMemo(() => {
     const byStatus: Record<string, Map<string, typeof orders>> = {};
@@ -175,13 +179,8 @@ export const PreciseKDSDisplay: React.FC = () => {
     const result: Record<string, typeof orders[]> = {};
     for (const [col, groupsMap] of Object.entries(byStatus)) {
       const groups = Array.from(groupsMap.values());
-      const ts = (o: typeof orders[number]) => {
-        const v = o.created_at || o.order_time;
-        const t = v ? new Date(v).getTime() : NaN;
-        return Number.isFinite(t) ? t : Number.POSITIVE_INFINITY;
-      };
-      groups.forEach((g) => g.sort((a, b) => ts(a) - ts(b)));
-      groups.sort((a, b) => ts(a[0]) - ts(b[0]));
+      groups.forEach((g) => g.sort((a, b) => orderTs(a) - orderTs(b)));
+      groups.sort((a, b) => orderTs(a[0]) - orderTs(b[0]));
       result[col] = groups;
     }
     return result;

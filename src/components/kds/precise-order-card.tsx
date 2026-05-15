@@ -44,28 +44,31 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
   onServeOrder,
 }) => {
   const validOrders = orders.filter((o): o is Order => !!o);
-  if (validOrders.length === 0) return null;
 
-  const oldest = validOrders.reduce((a, b) =>
-    orderTimestampMs(a) <= orderTimestampMs(b) ? a : b
-  );
+  const oldest: Order | undefined =
+    validOrders.length > 0
+      ? validOrders.reduce((a, b) => (orderTimestampMs(a) <= orderTimestampMs(b) ? a : b))
+      : undefined;
 
   // For SERVED orders, freeze the timer at the latest updated_at across the group
   // (when all items were marked complete). Falls back to freezing at "now" if the
   // backend didn't include updated_at on legacy orders.
-  const latestUpdatedIso = status === 'SERVED'
-    ? validOrders.reduce<string | undefined>((latest, o) => {
-        const u = o.updated_at;
-        if (!u) return latest;
-        return !latest || u > latest ? u : latest;
-      }, undefined)
-    : undefined;
+  const latestUpdatedIso =
+    status === 'SERVED'
+      ? validOrders.reduce<string | undefined>((latest, o) => {
+          const u = o.updated_at;
+          if (!u) return latest;
+          return !latest || u > latest ? u : latest;
+        }, undefined)
+      : undefined;
 
-  const { formatted: elapsedTime, minutes, frozen: timerFrozen } = useElapsedSeconds(
-    oldest.created_at || oldest.order_time,
+  const { formatted: elapsedTime, minutes } = useElapsedSeconds(
+    oldest?.created_at || oldest?.order_time,
     latestUpdatedIso,
     status === 'SERVED'
   );
+
+  if (!oldest) return null;
 
   const tableLabel =
     getTableLabel(oldest) ??
