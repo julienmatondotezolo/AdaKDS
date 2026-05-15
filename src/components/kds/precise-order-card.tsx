@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Play, Pause, Check, Utensils, StickyNote } from 'lucide-react';
+import { Play, Check, Utensils, StickyNote } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useElapsedSeconds } from '@/hooks/use-elapsed-seconds';
 import type { Order } from '@/types';
@@ -10,7 +10,6 @@ interface PreciseOrderCardProps {
   orders: Order[];
   status: 'NEW' | 'PROCESS' | 'READY' | 'SERVED';
   onStartOrder?: (orderIds: string[]) => void;
-  onPauseOrder?: (orderIds: string[]) => void;
   onFinishOrder?: (orderIds: string[]) => void;
   onServeOrder?: (orderIds: string[]) => void;
 }
@@ -39,7 +38,6 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
   orders,
   status,
   onStartOrder,
-  onPauseOrder,
   onFinishOrder,
   onServeOrder,
 }) => {
@@ -107,7 +105,6 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
     else if (status === 'PROCESS') onFinishOrder?.(orderIds);
     else if (status === 'READY') onServeOrder?.(orderIds);
   };
-  const handlePause = () => onPauseOrder?.(orderIds);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
@@ -208,22 +205,13 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
         )}
 
         {status === 'PROCESS' && (
-          <div className="flex gap-2">
-            <button
-              onClick={handlePause}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#3B82F6] hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
-            >
-              <Pause className="w-4 h-4" />
-              Pause
-            </button>
-            <button
-              onClick={handlePrimary}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#22C55E] hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
-            >
-              <Check className="w-4 h-4" />
-              Finish
-            </button>
-          </div>
+          <button
+            onClick={handlePrimary}
+            className="w-full flex items-center justify-center gap-2 bg-[#22C55E] hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
+          >
+            <Check className="w-4 h-4" />
+            Finish
+          </button>
         )}
 
         {status === 'READY' && (

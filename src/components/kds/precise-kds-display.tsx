@@ -155,7 +155,6 @@ export const PreciseKDSDisplay: React.FC = () => {
     await updateGroup(orderIds, 'preparing');
   };
 
-  const handlePauseOrder = (orderIds: string[]) => updateGroup(orderIds, 'preparing');
   const handleFinishOrder = (orderIds: string[]) => updateGroup(orderIds, 'ready');
   const handleServeOrder = (orderIds: string[]) => updateGroup(orderIds, 'completed');
 
@@ -273,7 +272,6 @@ export const PreciseKDSDisplay: React.FC = () => {
                       orders={group}
                       status={column.status}
                       onStartOrder={handleStartOrder}
-                      onPauseOrder={handlePauseOrder}
                       onFinishOrder={handleFinishOrder}
                       onServeOrder={handleServeOrder}
                     />
