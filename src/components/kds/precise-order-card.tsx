@@ -78,6 +78,20 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
         ? t('customer.delivery')
         : t('customer.walkin'));
 
+  // Multi-device QR sessions: show the first 4 chars of each unique
+  // guest_session_id in the group next to the table label. If a single
+  // device placed multiple orders they share one suffix; two devices at
+  // the same table show two suffixes. Missing IDs (legacy/POS) are omitted.
+  const guestSuffixes = Array.from(
+    new Set(
+      validOrders
+        .map((o) => o.guest_session_id?.slice(0, 4).toUpperCase())
+        .filter((s): s is string => !!s)
+    )
+  );
+  const tableLabelDisplay =
+    guestSuffixes.length > 0 ? `${tableLabel} · ${guestSuffixes.join(' · ')}` : tableLabel;
+
   const customerNames = Array.from(
     new Set(validOrders.map(getRealCustomerName).filter((n): n is string => !!n))
   );
@@ -114,7 +128,7 @@ export const PreciseOrderCard: React.FC<PreciseOrderCardProps> = ({
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h3 className="font-bold text-gray-900 text-lg leading-tight">{tableLabel}</h3>
+              <h3 className="font-bold text-gray-900 text-lg leading-tight">{tableLabelDisplay}</h3>
               {validOrders.length > 1 && (
                 <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs font-semibold">
                   {validOrders.length} {t('card.orders')}

@@ -38,10 +38,18 @@ const getColumnStatus = (raw: string | undefined): 'NEW' | 'PROCESS' | 'READY' |
 };
 
 const getGroupKey = (order: any): string => {
-  if (order.table_number) return `table:${String(order.table_number).toLowerCase()}`;
-  const m = order.customer_name?.match(TABLE_PATTERN);
-  if (m) return `table:${m[1].toLowerCase()}`;
-  return `order:${order.id}`;
+  let tableKey: string | null = null;
+  if (order.table_number) {
+    tableKey = `table:${String(order.table_number).toLowerCase()}`;
+  } else {
+    const m = order.customer_name?.match(TABLE_PATTERN);
+    if (m) tableKey = `table:${m[1].toLowerCase()}`;
+  }
+  if (!tableKey) return `order:${order.id}`;
+  // Multi-device QR: same device at same table groups (multiple rounds),
+  // different devices at the same table get their own cards. Legacy/POS
+  // orders without a guest_session_id continue to group by table only.
+  return order.guest_session_id ? `${tableKey}|guest:${order.guest_session_id}` : tableKey;
 };
 
 const orderTs = (o: any): number => {

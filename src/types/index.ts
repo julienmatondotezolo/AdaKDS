@@ -9,6 +9,7 @@ export interface Order {
   customer_name: string;
   customer_type: CustomerType;
   table_number?: string;
+  guest_session_id?: string;
   order_time: string;
   estimated_ready_time: string;
   elapsed_time: number;
