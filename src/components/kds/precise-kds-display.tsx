@@ -77,9 +77,14 @@ const getTableClusterLabel = (order: any): string | null => {
   return m ? `Table ${m[1]}` : null;
 };
 
+type ColumnStatus = 'NEW' | 'PROCESS' | 'READY' | 'SERVED';
+
 export const PreciseKDSDisplay: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Active tab when viewport is < sm (mobile). Desktop renders all four columns
+  // side-by-side and ignores this state.
+  const [activeMobileTab, setActiveMobileTab] = useState<ColumnStatus>('NEW');
 
   const {
     orders,
@@ -307,7 +312,7 @@ export const PreciseKDSDisplay: React.FC = () => {
         </div>
       )}
 
-      {/* Global Status Cards */}
+      {/* Global Status Cards (hidden on phones — tab bar covers it) */}
       <GlobalStatusCards
         newCount={getStatusCount('NEW')}
         processCount={getStatusCount('PROCESS')}
@@ -315,13 +320,51 @@ export const PreciseKDSDisplay: React.FC = () => {
         servedCount={getStatusCount('SERVED')}
       />
 
-      {/* Four Column Kanban Layout */}
-      <div className="px-6 pb-20">
-        <div className="grid grid-cols-4 gap-6">
+      {/* Mobile-only status tab bar */}
+      <div className="sm:hidden sticky top-0 z-10 bg-white border-b border-gray-200">
+        <div className="flex">
+          {KANBAN_COLUMNS.map((col) => {
+            const isActive = activeMobileTab === col.status;
+            const count = getStatusCount(col.status);
+            return (
+              <button
+                key={col.id}
+                onClick={() => setActiveMobileTab(col.status)}
+                className={cn(
+                  'flex-1 px-2 py-3 text-sm font-medium border-b-2 transition-colors flex items-center justify-center gap-1.5 min-w-0',
+                  isActive
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500'
+                )}
+              >
+                <span className="truncate">{t(columnTitleKey[col.status])}</span>
+                <span
+                  className={cn(
+                    'px-1.5 py-0.5 rounded-full text-[11px] font-bold shrink-0',
+                    isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-700'
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Kanban: 4 columns side-by-side on sm+; single active column on phones */}
+      <div className="px-3 sm:px-6 pb-24">
+        <div className="grid sm:grid-cols-4 gap-4 sm:gap-6">
           {KANBAN_COLUMNS.map((column) => (
-            <div key={column.id} className="flex flex-col">
-              {/* Column Header */}
-              <div className="mb-4">
+            <div
+              key={column.id}
+              className={cn(
+                'flex flex-col',
+                activeMobileTab !== column.status && 'hidden sm:flex'
+              )}
+            >
+              {/* Column Header — desktop only; mobile uses the tab bar */}
+              <div className="mb-4 hidden sm:block">
                 <h2 className="text-lg font-medium text-gray-600 flex items-center gap-2">
                   {t(columnTitleKey[column.status])}
                   <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm font-bold">

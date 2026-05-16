@@ -51,26 +51,28 @@ export const GlobalStatusCards: React.FC<GlobalStatusCardsProps> = ({
   ];
 
   return (
-    <div className="px-6 py-4">
-      <div className="grid grid-cols-4 gap-4">
+    // Hidden on phones — the mobile tab bar already shows per-status counts.
+    // 2x2 on small tablet, 4-wide on desktop.
+    <div className="hidden sm:block px-3 sm:px-6 py-3 sm:py-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {cards.map((card, index) => (
           <div
             key={index}
             className={cn(
-              'bg-white rounded-lg border border-gray-200 border-t-4 p-6 shadow-sm',
+              'bg-white rounded-lg border border-gray-200 border-t-4 p-4 sm:p-6 shadow-sm',
               card.borderColor
             )}
           >
             <div className="flex items-center justify-between">
               <div className="text-center flex-1">
-                <div className="text-4xl font-bold text-gray-900 mb-1">
+                <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-1">
                   {card.count}
                 </div>
                 <div className="text-sm font-medium text-gray-600">
                   {card.label}
                 </div>
               </div>
-              <div className={cn('p-3 rounded-lg', card.bgColor)}>
+              <div className={cn('p-2 sm:p-3 rounded-lg', card.bgColor)}>
                 {card.icon}
               </div>
             </div>
