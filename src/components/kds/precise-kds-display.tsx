@@ -58,6 +58,25 @@ const orderTs = (o: any): number => {
   return Number.isFinite(t) ? t : Number.POSITIVE_INFINITY;
 };
 
+/**
+ * Visual cluster key — collapses guest_session_id off the group key so that
+ * groups from different devices at the same table land in the same cluster.
+ * Used only for rendering (tray wrapper); does NOT affect grouping for
+ * status mutations.
+ */
+const getTableClusterKey = (order: any): string => {
+  if (order.table_number) return `table:${String(order.table_number).toLowerCase()}`;
+  const m = order.customer_name?.match(TABLE_PATTERN);
+  if (m) return `table:${m[1].toLowerCase()}`;
+  return `solo:${order.id}`;
+};
+
+const getTableClusterLabel = (order: any): string | null => {
+  if (order.table_number) return `Table ${order.table_number}`;
+  const m = order.customer_name?.match(TABLE_PATTERN);
+  return m ? `Table ${m[1]}` : null;
+};
+
 export const PreciseKDSDisplay: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -318,16 +337,56 @@ export const PreciseKDSDisplay: React.FC = () => {
                     <p className="text-sm text-gray-500">{t(emptyKey[column.status])}</p>
                   </div>
                 ) : (
-                  ordersByStatus[column.status]?.map((group) => (
-                    <PreciseOrderCard
-                      key={group.map((o) => o.id).join('|')}
-                      orders={group}
-                      status={column.status}
-                      onStartOrder={handleStartOrder}
-                      onFinishOrder={handleFinishOrder}
-                      onServeOrder={handleServeOrder}
-                    />
-                  ))
+                  (() => {
+                    // Sub-cluster the column's groups by table (ignoring guest_session_id)
+                    // so two devices at the same table sit in a shared tray without
+                    // losing their per-device cards / per-device transitions.
+                    const groups = ordersByStatus[column.status] || [];
+                    type Cluster = { key: string; tableLabel: string | null; groups: typeof groups };
+                    const clusters: Cluster[] = [];
+                    const byKey = new Map<string, Cluster>();
+                    for (const group of groups) {
+                      const first = group[0];
+                      const key = getTableClusterKey(first);
+                      let cluster = byKey.get(key);
+                      if (!cluster) {
+                        cluster = { key, tableLabel: getTableClusterLabel(first), groups: [] };
+                        byKey.set(key, cluster);
+                        clusters.push(cluster);
+                      }
+                      cluster.groups.push(group);
+                    }
+                    return clusters.map((cluster) => {
+                      const cards = cluster.groups.map((group) => (
+                        <PreciseOrderCard
+                          key={group.map((o) => o.id).join('|')}
+                          orders={group}
+                          status={column.status}
+                          onStartOrder={handleStartOrder}
+                          onFinishOrder={handleFinishOrder}
+                          onServeOrder={handleServeOrder}
+                        />
+                      ));
+                      // Single-card clusters render as before (no tray chrome).
+                      if (cluster.groups.length < 2 || !cluster.tableLabel) {
+                        return <React.Fragment key={cluster.key}>{cards}</React.Fragment>;
+                      }
+                      return (
+                        <div
+                          key={cluster.key}
+                          className="rounded-xl border border-gray-300 bg-gray-100/60 p-2 space-y-2"
+                        >
+                          <div className="px-1 pt-1 flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            <span>{cluster.tableLabel}</span>
+                            <span className="bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded-full text-[10px] normal-case font-bold">
+                              {cluster.groups.length}
+                            </span>
+                          </div>
+                          {cards}
+                        </div>
+                      );
+                    });
+                  })()
                 )}
               </div>
             </div>
