@@ -72,10 +72,13 @@ export const config = {
      * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
      * - auth/callback (callback route itself)
      * - manifest.json, sw.js (PWA files)
+     * - root-level static assets needed unauthenticated for PWA install:
+     *   favicons, apple-touch-icon, icon-*, apple-splash-* — must respond 200
+     *   to iOS / Android installer or the home-screen icon falls back to a
+     *   page screenshot.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|auth/callback|manifest.json|sw.js).*)',
+    '/((?!api|_next/static|_next/image|auth/callback|manifest\\.json|sw\\.js|favicon\\.ico|favicon\\.png|favicon-[^/]+\\.png|apple-touch-icon[^/]*\\.png|apple-splash-[^/]+\\.png|icon-[^/]+\\.png).*)',
   ],
 };
